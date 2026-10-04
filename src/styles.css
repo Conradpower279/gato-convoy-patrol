@@ -1,0 +1,1355 @@
+:root {
+  color-scheme: dark;
+  --ink: #e8f0ed;
+  --muted: #9cb9bb;
+  --edge: #34545b;
+  --gold: #e6c77b;
+  --green: #8dd8ad;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: #06141d;
+  color: var(--ink);
+  font:
+    14px/1.45 system-ui,
+    Arial,
+    sans-serif;
+  overflow: hidden;
+}
+button,
+select,
+input {
+  font: inherit;
+}
+button,
+select {
+  background: #173943;
+  color: var(--ink);
+  border: 1px solid #59767b;
+  border-radius: 5px;
+  padding: 9px 12px;
+}
+button {
+  cursor: pointer;
+}
+button:hover {
+  background: #26515a;
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+button.primary {
+  background: #bba263;
+  color: #091b24;
+  border-color: #dbc78d;
+  font-weight: 750;
+}
+button:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+  outline: 2px solid #ffdc8e;
+  outline-offset: 3px;
+}
+h1,
+h2,
+p {
+  margin: 0 0 12px;
+}
+h1 {
+  font-size: 29px;
+  letter-spacing: 0.04em;
+}
+h2 {
+  font-size: 24px;
+}
+.muted {
+  color: var(--muted);
+}
+.green {
+  color: var(--green);
+}
+.yellow {
+  color: var(--gold);
+}
+.red {
+  color: #ff9c87;
+}
+.small {
+  font-size: 12px;
+}
+#layout {
+  height: 100dvh;
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  grid-template-rows: minmax(0, 1fr);
+}
+aside {
+  min-height: 0;
+  background: #0a202a;
+  border-right: 1px solid var(--edge);
+  padding: 16px 14px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+aside header {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--gold);
+}
+aside header strong {
+  display: block;
+  font-size: 21px;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+#hud {
+  font-size: 13px;
+}
+#hud section {
+  border-top: 1px solid var(--edge);
+  padding-top: 10px;
+  margin-top: 10px;
+}
+#hud .row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 4px 0;
+}
+#hud .bar {
+  height: 8px;
+  background: #203e43;
+  border-radius: 2px;
+  margin: 5px 0 9px;
+  overflow: hidden;
+}
+#hud .bar i {
+  display: block;
+  height: 100%;
+}
+.label {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: auto;
+}
+.controls button {
+  padding: 7px 4px;
+  font-size: 12px;
+}
+.controls .wide {
+  grid-column: 1/-1;
+}
+#saveStatus {
+  grid-column: 1/-1;
+  font-size: 11px;
+  text-align: center;
+  color: var(--muted);
+}
+#stage {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #040e15;
+}
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: contain;
+}
+#msg {
+  position: absolute;
+  top: 18px;
+  left: 16px;
+  right: 16px;
+  text-align: center;
+  pointer-events: none;
+  font-size: 16px;
+  color: #fff3c8;
+  text-shadow: 0 2px 5px #000;
+}
+#help {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: #071e29ed;
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  max-height: 85%;
+  overflow: auto;
+  padding: 8px 12px;
+  font-size: 12px;
+  width: 260px;
+}
+summary {
+  cursor: pointer;
+  color: var(--gold);
+  font-weight: 650;
+}
+.helpbody {
+  padding-top: 8px;
+}
+.helpbody p {
+  margin-bottom: 9px;
+}
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: #031019e8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: auto;
+}
+.card {
+  background: #0b222d;
+  border: 1px solid #547078;
+  border-radius: 12px;
+  width: min(610px, 96vw);
+  padding: 28px;
+  box-shadow: 0 18px 60px #0008;
+  max-height: 95vh;
+  overflow: auto;
+}
+.eyebrow {
+  color: var(--gold);
+  font-size: 11px;
+  letter-spacing: 0.17em;
+  margin-bottom: 10px;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0;
+}
+.actions button {
+  flex: 1 1 145px;
+}
+.config {
+  border-top: 1px solid var(--edge);
+  padding-top: 12px;
+}
+.configRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 9px 0;
+  align-items: center;
+}
+.configRow label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.brief {
+  padding: 12px;
+  background: #102f39;
+  border-left: 3px solid var(--gold);
+  font-size: 13px;
+  margin: 16px 0;
+}
+.results {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 20px 0;
+}
+.results div {
+  background: #11323d;
+  padding: 12px;
+  border-radius: 5px;
+}
+.results strong {
+  display: block;
+  font-size: 22px;
+  color: var(--gold);
+}
+#death {
+  display: none;
+}
+#error {
+  display: none;
+  color: #ffad9b;
+  padding: 10px;
+  background: #48272a;
+  margin-top: 10px;
+}
+@media (max-width: 850px) {
+  #layout {
+    grid-template-columns: 195px 1fr;
+  }
+  aside {
+    padding: 10px 9px;
+    gap: 8px;
+  }
+  #hud {
+    font-size: 11px;
+  }
+  aside header strong {
+    font-size: 17px;
+  }
+  #help {
+    width: 210px;
+    font-size: 11px;
+  }
+  #msg {
+    font-size: 13px;
+    top: 8px;
+  }
+  .card {
+    padding: 20px;
+  }
+}
+#port {
+  display: none;
+  z-index: 12;
+}
+.portCard {
+  width: min(830px, 96vw);
+}
+#campaignTrack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 15px 0;
+}
+.missionStep {
+  font-size: 11px;
+  border: 1px solid #34545b;
+  border-radius: 4px;
+  padding: 6px 8px;
+  color: #9cb9bb;
+}
+.missionStep.current {
+  border-color: #e6c77b;
+  color: #ffe4a5;
+}
+.missionStep.done {
+  border-color: #5d9c7a;
+  color: #8dd8ad;
+}
+#upgradePoints {
+  font-size: 18px;
+  color: #e6c77b;
+  margin: 18px 0 8px;
+}
+#upgradeList {
+  display: grid;
+  gap: 8px;
+}
+.upgradeCard {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 14px;
+  background: #102f39;
+  padding: 13px;
+  border-radius: 6px;
+}
+.upgradeCard p {
+  font-size: 12px;
+  color: #a9c4c6;
+  margin: 5px 0;
+}
+.level {
+  margin-left: 10px;
+  font-size: 12px;
+  color: #e6c77b;
+}
+.portCard .actions {
+  position: sticky;
+  bottom: -28px;
+  background: #0b222d;
+  padding: 12px 0;
+  margin-bottom: 0;
+}
+#campaignLog {
+  margin-top: 15px;
+  line-height: 1.65;
+}
+@media (max-width: 600px) {
+  .upgradeCard {
+    grid-template-columns: 1fr;
+  }
+  .portCard .actions {
+    bottom: -20px;
+  }
+  .missionStep {
+    font-size: 10px;
+  }
+}
+
+#logOverlay {
+  display: none;
+  z-index: 30;
+}
+#logEntries {
+  max-height: 55vh;
+  overflow: auto;
+  margin: 14px 0;
+}
+#logEntries p {
+  padding: 8px 0;
+  border-bottom: 1px solid #34545b;
+  font-size: 13px;
+}
+.approachPanel {
+  border-top: 1px solid #34545b;
+  padding-top: 12px;
+}
+#approachChart {
+  display: block;
+  width: 100%;
+  max-height: 230px;
+  margin: 12px auto;
+}
+#approachChoices {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+#approachChoices button {
+  text-align: left;
+  font-size: 12px;
+}
+#approachChoices span {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  margin-top: 6px;
+}
+.portCard .actions button {
+  flex-basis: 130px;
+}
+@media (max-width: 650px) {
+  #approachChoices {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Pier and personnel sheets: worn timber, dark water, warm paper. */
+.portCard {
+  width: min(1050px, 96vw);
+  border-radius: 3px;
+  background: #172727;
+  border-color: #80765c;
+}
+.portCard .actions {
+  background: #172727;
+}
+.sortieChoices {
+  display: flex;
+  gap: 10px;
+  margin: 12px 0 20px;
+}
+.sortieChoices button {
+  flex: 1;
+  border-radius: 2px;
+}
+.crewStation {
+  border: 1px solid #736b56;
+  background: #102328;
+  padding: 16px;
+  margin-bottom: 22px;
+}
+.crewHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.crewHeading h3 {
+  font:
+    26px Georgia,
+    serif;
+  margin: 0 0 8px;
+  color: #ede1c2;
+}
+.crewHeading strong {
+  color: #d8bf83;
+  font: 14px monospace;
+}
+.crewPier {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1000/360;
+  overflow: hidden;
+  border: 1px solid #645f4e;
+}
+#pierArt {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.pierSailor {
+  position: absolute;
+  width: 9%;
+  height: 25%;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  transform: translateX(-50%);
+  border-radius: 0;
+  color: #fff0c6;
+}
+.pierSailor:hover {
+  background: #e3c78a18;
+}
+.pierSailor svg {
+  display: block;
+  height: 75%;
+  width: 100%;
+  overflow: visible;
+}
+.pierSailor span {
+  display: block;
+  white-space: nowrap;
+  font: clamp(8px, 1vw, 12px) monospace;
+  text-shadow: 0 2px 3px #000;
+  text-align: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.pierSailor.inspected svg {
+  filter: drop-shadow(0 0 3px #f1d998);
+}
+.pierSailor.aboard span {
+  color: #bfddb8;
+}
+.sailorBody {
+  transform-origin: 32px 32px;
+  animation: watchSway 3.6s ease-in-out infinite alternate;
+}
+@keyframes watchSway {
+  from {
+    transform: rotate(-3deg);
+  }
+  to {
+    transform: rotate(3deg);
+  }
+}
+#crewQuote {
+  font:
+    italic 15px/1.5 Georgia,
+    serif;
+  color: #f0deaf;
+  border-left: 3px solid #baa36b;
+  background: #243531;
+  padding: 12px;
+  margin: 12px 0;
+  min-height: 48px;
+}
+.crewRecord {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: center;
+  color: #2b312c;
+  background: #d5c9aa;
+  border: 1px solid #f0e0b9;
+  padding: 18px;
+  font:
+    14px/1.5 Georgia,
+    serif;
+}
+.crewRecord h3 {
+  margin: 5px 0 10px;
+  font-size: 21px;
+}
+.personnelStamp {
+  font: 10px monospace;
+  letter-spacing: 0.07em;
+  color: #645442;
+}
+.crewRecord p {
+  margin: 4px 0;
+}
+.crewPerk {
+  color: #294b36;
+}
+.crewDrawback {
+  color: #773d30;
+}
+.crewRecord button {
+  background: #344b43;
+  border-radius: 2px;
+  max-width: 185px;
+}
+#crewManifest {
+  font: 12px/1.5 monospace;
+  color: #c2c5ad;
+  padding-top: 12px;
+}
+@media (max-width: 650px) {
+  .crewRecord {
+    grid-template-columns: 1fr;
+  }
+  .crewStation {
+    padding: 10px;
+  }
+  .crewRecord button {
+    max-width: none;
+  }
+  .crewHeading h3 {
+    font-size: 22px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sailorBody {
+    animation: none;
+  }
+}
+
+/* 1944 Gato-class: pressure-hull instruments and chart-table paperwork. */
+:root {
+  --ink: #e2dfca;
+  --muted: #b5b7a5;
+  --edge: #626857;
+  --gold: #c6ae71;
+  --green: #a7b990;
+}
+body {
+  background: #161c1a;
+  font-family: "Arial Narrow", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+button,
+select {
+  border-radius: 1px;
+  border: 1px solid #797b67;
+  background: #343f37;
+  color: #e8e1c7;
+  box-shadow:
+    inset 0 1px #9b9b7b55,
+    inset 0 -2px #0b100e77;
+  font:
+    700 11px/1.4 "Arial Narrow",
+    Arial,
+    sans-serif;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  padding: 10px 12px;
+}
+button:hover {
+  background: #465046;
+}
+button:active {
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 3px #101710;
+}
+button.primary {
+  background: #b9aa7c;
+  color: #222b24;
+  border-color: #867a53;
+}
+button.primary:hover {
+  background: #ccbd8d;
+}
+button:disabled {
+  opacity: 0.48;
+}
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+summary:focus-visible,
+.padFocus {
+  outline: 3px solid #e1bd61 !important;
+  outline-offset: 3px;
+}
+.padFocus {
+  box-shadow: inset 0 0 0 2px #27291e !important;
+}
+input[type="checkbox"] {
+  accent-color: #46513c;
+  width: 17px;
+  height: 17px;
+  cursor: pointer;
+}
+aside {
+  background:
+    repeating-linear-gradient(0deg, transparent 0 59px, #a7a78506 60px), #2a342e;
+  border-right: 5px ridge #626a58;
+  padding: 15px 13px;
+  box-shadow: inset 3px 0 #111b1677;
+}
+aside header {
+  position: relative;
+  background: #1a211d;
+  color: #bbae85;
+  border: 3px double #777c63;
+  text-align: center;
+  padding: 12px 8px;
+  font:
+    10px/1.5 "Arial Narrow",
+    Arial,
+    sans-serif;
+  letter-spacing: 0.13em;
+}
+aside header::before,
+aside header::after {
+  content: "⊖";
+  position: absolute;
+  top: 3px;
+  color: #838a71;
+  font-size: 12px;
+}
+aside header::before {
+  left: 4px;
+}
+aside header::after {
+  right: 4px;
+}
+aside header strong {
+  font:
+    700 23px/1.4 "Arial Narrow",
+    Arial,
+    sans-serif;
+  color: #ede5c9;
+  letter-spacing: 0.12em;
+}
+aside header span {
+  font-size: 9px;
+}
+#hud {
+  font:
+    12px/1.45 "Arial Narrow",
+    Arial,
+    sans-serif;
+}
+#hud section {
+  border-top: 2px groove #707761;
+  padding-top: 12px;
+  margin-top: 12px;
+}
+#hud .label {
+  display: block;
+  border: 1px solid #646b55;
+  background: #171f1a;
+  color: #d4ccb0;
+  font-size: 9px;
+  letter-spacing: 0.07em;
+  padding: 4px 5px;
+  margin-bottom: 8px;
+}
+#hud .row {
+  border-bottom: 1px solid #a1a18416;
+  padding: 2px 0;
+  gap: 7px;
+}
+#hud .row b {
+  font-family: "Courier New", monospace;
+  color: #e3dfc6;
+}
+#hud .bar {
+  height: 10px;
+  border: 1px solid #8a896d;
+  background: #141c16;
+  border-radius: 0;
+  position: relative;
+}
+#hud .bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 9%,
+    #1b221c 9% 10%
+  );
+  pointer-events: none;
+}
+#hud .bar i {
+  filter: saturate(0.45);
+}
+#hud .green::before,
+#hud .yellow::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 5px;
+  border-radius: 50%;
+  border: 1px solid #b7ae80;
+  background: currentColor;
+}
+.green {
+  color: #acbe97;
+}
+.yellow {
+  color: #ceb57a;
+}
+.red {
+  color: #d49479;
+}
+.controls {
+  border-top: 2px groove #777d66;
+  padding-top: 10px;
+  gap: 7px;
+}
+.controls button {
+  background: #232e26;
+  border: 2px groove #7a8069;
+  padding: 8px 4px;
+  font-size: 10px;
+}
+#stage {
+  background: #111a18;
+  border-left: 2px solid #141a16;
+}
+#msg {
+  font:
+    700 14px/1.5 "Arial Narrow",
+    Arial,
+    sans-serif;
+  color: #e9dbb4;
+  text-shadow: 0 2px #111;
+}
+#help {
+  border-radius: 1px;
+  border: 3px double #a99e7c;
+  background: #dad0b4;
+  color: #2d332b;
+  font:
+    11px/1.5 "Courier New",
+    monospace;
+  box-shadow: none;
+}
+#help summary {
+  color: #354234;
+  font-weight: 700;
+}
+#help .muted {
+  color: #555d4b;
+}
+.tubePanel {
+  padding: 7px 5px;
+  margin: 8px 0;
+  border: 2px groove #767c63;
+  background: #1b241e;
+}
+.tubeBank {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  margin: 4px 0;
+}
+.tubeBank > span {
+  font:
+    8px "Arial Narrow",
+    Arial,
+    sans-serif;
+  color: #c2b999;
+  letter-spacing: 0.05em;
+}
+.tubeBank > div {
+  display: flex;
+  gap: 7px;
+}
+.tubeLamp {
+  font:
+    8px "Courier New",
+    monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: #b4b498;
+}
+.tubeLamp i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #686e57;
+  background: #101a13;
+  box-shadow: inset 0 1px 2px #0009;
+}
+.tubeLamp.ready i {
+  background: #a4b080;
+  border-color: #7d8b65;
+}
+.tubeLamp.loading i {
+  background: #c2a463;
+  border-color: #92815b;
+}
+.overlay {
+  background:
+    repeating-linear-gradient(0deg, #b0b7a104 0 1px, transparent 1px 38px),
+    repeating-linear-gradient(90deg, #b0b7a104 0 1px, transparent 1px 38px),
+    #19231ff7;
+}
+.card {
+  border-radius: 1px;
+  background:
+    repeating-linear-gradient(0deg, #5c53350a 0 1px, transparent 1px 4px),
+    #ddd3b9;
+  color: #283329;
+  border: 1px solid #9e9270;
+  box-shadow: 5px 7px 0 #111a1788;
+  padding: 28px;
+  font:
+    13px/1.5 "Courier New",
+    monospace;
+}
+.card .muted {
+  color: #58614f;
+}
+.card .yellow {
+  color: #75602e;
+}
+.card .green {
+  color: #35593b;
+}
+.card .eyebrow {
+  color: #596049;
+  font:
+    700 10px/1.5 "Courier New",
+    monospace;
+  letter-spacing: 0.12em;
+}
+.card h1 {
+  font:
+    700 36px/1.3 "Arial Narrow",
+    Arial,
+    sans-serif;
+  letter-spacing: 0.12em;
+  border-bottom: 3px double #777657;
+  padding-bottom: 6px;
+}
+.card h2 {
+  font:
+    700 25px/1.25 "Arial Narrow",
+    Arial,
+    sans-serif;
+  letter-spacing: 0.025em;
+}
+.card h3 {
+  font:
+    700 14px "Courier New",
+    monospace;
+}
+.documentTitle {
+  font:
+    700 12px/1.4 "Courier New",
+    monospace;
+  letter-spacing: 0.14em;
+  color: #4b5141;
+  margin: 8px 0 14px;
+}
+#splash .card {
+  border: 11px solid #534c37;
+  border-top: 30px solid #534c37;
+  position: relative;
+  outline: 1px solid #8b8467;
+}
+#splash .card::before {
+  content: "";
+  display: block;
+  width: 135px;
+  height: 17px;
+  margin: -27px auto 25px;
+  background: #848873;
+  border: 3px ridge #a5a58c;
+}
+#splash::before {
+  content: "PACIFIC OCEAN\A SUBMARINE FORCE\A CHART NO. 1944";
+  white-space: pre;
+  position: fixed;
+  left: 4vw;
+  bottom: 12vh;
+  width: 230px;
+  padding: 160px 20px 35px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 32px, #525d481c 32px 33px),
+    repeating-linear-gradient(0deg, transparent 0 32px, #525d481c 32px 33px),
+    #9e9c7c;
+  color: #4a5544;
+  border: 1px solid #b9b18a;
+  transform: rotate(-9deg);
+  font:
+    12px/2 "Courier New",
+    monospace;
+  pointer-events: none;
+  z-index: -1;
+}
+#splash .brief {
+  background: #cfc5a9;
+  border-left: 3px solid #787856;
+}
+.brief {
+  background: #e4dcc6;
+  color: #313d30;
+  border: 1px solid #a59e80;
+  border-left: 4px double #77765a;
+  position: relative;
+  padding: 17px;
+  font:
+    13px/1.6 "Courier New",
+    monospace;
+}
+#port .brief::before {
+  content: "COMSUBPAC / PRIMARY ASSIGNMENT";
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: #667052;
+  border-bottom: 1px solid #b4aa89;
+  padding-bottom: 6px;
+  margin-bottom: 9px;
+}
+.actions {
+  gap: 9px;
+  margin: 16px 0;
+}
+.config {
+  border-top: 3px double #8b8b6d;
+  margin-top: 18px;
+  padding-top: 12px;
+}
+.configRow {
+  padding: 6px 0;
+  border-bottom: 1px dotted #99977a;
+}
+.configRow label {
+  gap: 12px;
+}
+.config select {
+  background: #ddd3b9;
+  color: #293a2a;
+  border: 1px solid #777d60;
+  min-width: 112px;
+}
+.controllerStatus {
+  border: 1px dashed #939477;
+  padding: 9px;
+  font:
+    11px/1.5 "Courier New",
+    monospace;
+  color: #4a5845;
+}
+#port .portCard {
+  width: min(1050px, 96vw);
+  background: #c8c4a9;
+  border: 9px solid #414d3f;
+  box-shadow: none;
+}
+#port .portCard > .eyebrow {
+  border-bottom: 2px solid #727c60;
+  padding-bottom: 8px;
+}
+#campaignTrack {
+  gap: 0;
+  border-top: 2px solid #808369;
+  border-bottom: 2px solid #808369;
+  background: #dcd5bc;
+}
+.missionStep {
+  border: 0;
+  border-right: 1px solid #a1a084;
+  border-radius: 0;
+  color: #6e735d;
+  font:
+    11px/1.5 "Courier New",
+    monospace;
+  flex: 1 1 140px;
+  padding: 10px;
+}
+.missionStep.current {
+  color: #2d3d2f;
+  border-bottom: 3px solid #65744f;
+  font-weight: 700;
+}
+.missionStep.done {
+  color: #754c3b;
+  text-decoration: underline;
+  text-decoration-style: double;
+}
+.missionStep.done::after {
+  content: " / COMPLETED";
+  font-size: 8px;
+}
+.approachPanel {
+  padding: 18px;
+  background: #e3dcc4;
+  border: 1px solid #9b9e7f;
+  margin: 15px 0;
+}
+.approachPanel h3 {
+  margin-top: 0;
+}
+#approachChart {
+  border: 1px solid #989a7f;
+  max-height: 260px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 24px, #64785622 24px 25px),
+    repeating-linear-gradient(0deg, transparent 0 24px, #64785622 24px 25px),
+    #dbd9bd;
+}
+#approachChart > rect {
+  fill: transparent;
+  stroke: #687a57;
+  rx: 0;
+}
+#approachChart > path {
+  stroke: #5f6244;
+}
+#approachChart > text {
+  fill: #4c6348;
+  font-family: "Courier New", monospace;
+}
+#approachChart > circle {
+  stroke: #4f6e4a;
+}
+#approachChart #approachMarker {
+  fill: #955942;
+  stroke: #75452e;
+}
+#approachChoices button {
+  background: #d6d0b5;
+  color: #364730;
+  border: 1px solid #8c9674;
+  box-shadow: none;
+  text-transform: none;
+  font-family: "Courier New", monospace;
+}
+#approachChoices button.primary {
+  outline: 2px solid #5b6b45;
+  outline-offset: -5px;
+  background: #c9c7a6;
+}
+.refitHeading {
+  padding: 12px 0;
+  border-top: 3px double #788063;
+}
+#upgradePoints {
+  color: #3c4a31;
+  font:
+    700 16px "Courier New",
+    monospace;
+}
+#upgradeList {
+  gap: 0;
+  border: 1px solid #949578;
+  background: #e0d7bd;
+}
+.upgradeCard {
+  border: 0;
+  border-bottom: 1px solid #9b9c7f;
+  border-radius: 0;
+  background: transparent;
+  padding: 15px;
+  font:
+    13px "Courier New",
+    monospace;
+}
+.upgradeCard p {
+  color: #515b44;
+  line-height: 1.6;
+}
+.upgradeCard .level {
+  color: #6e5e37;
+}
+.upgradeCard button {
+  background: #ded4b5;
+  color: #394a30;
+  border: 2px solid #788565;
+  box-shadow: none;
+}
+#campaignLog {
+  padding: 12px;
+  border-top: 1px dashed #888f70;
+  background: #d8d1b7;
+}
+.portCard .actions {
+  background: #c8c4a9;
+  border-top: 2px solid #818968;
+  bottom: -28px;
+  z-index: 2;
+}
+.crewStation {
+  background: #293b32;
+  border: 3px double #7c856b;
+  color: #e1ddc7;
+  padding: 15px;
+}
+.crewStation .eyebrow {
+  color: #bfb08a;
+}
+.crewHeading h3 {
+  color: #e4d6b1;
+  font:
+    25px Georgia,
+    serif;
+}
+.crewHeading strong {
+  color: #c9b881;
+}
+.crewStation .pierSailor {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.crewStation .pierSailor.inspected svg {
+  filter: none;
+}
+.pierSailor.inspected {
+  outline: 1px dashed #cfbc83;
+  outline-offset: 2px;
+}
+#crewQuote {
+  background: #354537;
+  border-left: 3px solid #aaa06c;
+  color: #e1d7b5;
+}
+.crewRecord {
+  background: #d9cfb2;
+  border: 1px solid #a99f7a;
+  font:
+    12px/1.5 "Courier New",
+    monospace;
+}
+.crewRecord h3 {
+  font:
+    700 18px "Courier New",
+    monospace;
+}
+.crewRecord .crewPerk {
+  color: #2e5034;
+}
+.crewRecord .crewDrawback {
+  color: #7a4533;
+}
+.crewRecord button {
+  color: #e6dec3;
+}
+.results {
+  display: block;
+  border-top: 2px solid #7d8467;
+}
+.results div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  border-radius: 0;
+  border-bottom: 1px solid #a9a588;
+  background: none;
+  padding: 11px 0;
+}
+.results .label {
+  color: #53604c;
+  font:
+    11px "Courier New",
+    monospace;
+}
+.results strong {
+  color: #313e2d;
+  font:
+    700 18px "Courier New",
+    monospace;
+  text-align: right;
+}
+#death #resultTitle {
+  display: inline-block;
+  border: 3px double #845c47;
+  padding: 8px 14px;
+  color: #79513e;
+  font:
+    700 23px "Courier New",
+    monospace;
+}
+#logOverlay .card {
+  border-left: 19px solid #4c4936;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 28px, #647c5822 28px 29px),
+    #e0d8bc;
+}
+#logEntries {
+  max-height: 55vh;
+}
+.card #logEntries p {
+  color: #354630;
+  border-color: #9a9f7e;
+  font:
+    13px/1.6 "Courier New",
+    monospace;
+}
+#helpOverlay {
+  z-index: 35;
+}
+#fieldGuideText {
+  max-height: 62vh;
+  overflow: auto;
+  margin: 15px 0;
+  padding-right: 10px;
+}
+#controllerHint {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: #1b261feb;
+  border-top: 1px solid #8a9275;
+  color: #e5dcc0;
+  padding: 8px 12px;
+  text-align: center;
+  font:
+    11px/1.5 "Courier New",
+    monospace;
+  pointer-events: none;
+}
+body:has(#controllerHint:not([hidden])) .overlay {
+  padding-bottom: 46px;
+}
+body:has(#controllerHint:not([hidden])) .overlay > .card {
+  max-height: calc(100dvh - 70px);
+}
+@media (max-width: 850px) {
+  #hud {
+    font-size: 10px;
+  }
+  .tubeBank > div {
+    gap: 4px;
+  }
+  .tubeLamp i {
+    width: 8px;
+    height: 8px;
+  }
+  .tubeBank > span {
+    font-size: 7px;
+  }
+  .card {
+    padding: 20px;
+  }
+  .portCard .actions {
+    bottom: -20px;
+  }
+  #splash::before {
+    display: none;
+  }
+}

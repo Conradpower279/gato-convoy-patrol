@@ -1,0 +1,6048 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Gato Class: Convoy Patrol — v15</title>
+    <style>
+:root {
+  color-scheme: dark;
+  --ink: #e8f0ed;
+  --muted: #9cb9bb;
+  --edge: #34545b;
+  --gold: #e6c77b;
+  --green: #8dd8ad;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: #06141d;
+  color: var(--ink);
+  font:
+    14px/1.45 system-ui,
+    Arial,
+    sans-serif;
+  overflow: hidden;
+}
+button,
+select,
+input {
+  font: inherit;
+}
+button,
+select {
+  background: #173943;
+  color: var(--ink);
+  border: 1px solid #59767b;
+  border-radius: 5px;
+  padding: 9px 12px;
+}
+button {
+  cursor: pointer;
+}
+button:hover {
+  background: #26515a;
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+button.primary {
+  background: #bba263;
+  color: #091b24;
+  border-color: #dbc78d;
+  font-weight: 750;
+}
+button:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+  outline: 2px solid #ffdc8e;
+  outline-offset: 3px;
+}
+h1,
+h2,
+p {
+  margin: 0 0 12px;
+}
+h1 {
+  font-size: 29px;
+  letter-spacing: 0.04em;
+}
+h2 {
+  font-size: 24px;
+}
+.muted {
+  color: var(--muted);
+}
+.green {
+  color: var(--green);
+}
+.yellow {
+  color: var(--gold);
+}
+.red {
+  color: #ff9c87;
+}
+.small {
+  font-size: 12px;
+}
+#layout {
+  height: 100dvh;
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  grid-template-rows: minmax(0, 1fr);
+}
+aside {
+  min-height: 0;
+  background: #0a202a;
+  border-right: 1px solid var(--edge);
+  padding: 16px 14px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+aside header {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--gold);
+}
+aside header strong {
+  display: block;
+  font-size: 21px;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+#hud {
+  font-size: 13px;
+}
+#hud section {
+  border-top: 1px solid var(--edge);
+  padding-top: 10px;
+  margin-top: 10px;
+}
+#hud .row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 4px 0;
+}
+#hud .bar {
+  height: 8px;
+  background: #203e43;
+  border-radius: 2px;
+  margin: 5px 0 9px;
+  overflow: hidden;
+}
+#hud .bar i {
+  display: block;
+  height: 100%;
+}
+.label {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: auto;
+}
+.controls button {
+  padding: 7px 4px;
+  font-size: 12px;
+}
+.controls .wide {
+  grid-column: 1/-1;
+}
+#saveStatus {
+  grid-column: 1/-1;
+  font-size: 11px;
+  text-align: center;
+  color: var(--muted);
+}
+#stage {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #040e15;
+}
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: contain;
+}
+#msg {
+  position: absolute;
+  top: 18px;
+  left: 16px;
+  right: 16px;
+  text-align: center;
+  pointer-events: none;
+  font-size: 16px;
+  color: #fff3c8;
+  text-shadow: 0 2px 5px #000;
+}
+#help {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: #071e29ed;
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  max-height: 85%;
+  overflow: auto;
+  padding: 8px 12px;
+  font-size: 12px;
+  width: 260px;
+}
+summary {
+  cursor: pointer;
+  color: var(--gold);
+  font-weight: 650;
+}
+.helpbody {
+  padding-top: 8px;
+}
+.helpbody p {
+  margin-bottom: 9px;
+}
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: #031019e8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: auto;
+}
+.card {
+  background: #0b222d;
+  border: 1px solid #547078;
+  border-radius: 12px;
+  width: min(610px, 96vw);
+  padding: 28px;
+  box-shadow: 0 18px 60px #0008;
+  max-height: 95vh;
+  overflow: auto;
+}
+.eyebrow {
+  color: var(--gold);
+  font-size: 11px;
+  letter-spacing: 0.17em;
+  margin-bottom: 10px;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0;
+}
+.actions button {
+  flex: 1 1 145px;
+}
+.config {
+  border-top: 1px solid var(--edge);
+  padding-top: 12px;
+}
+.configRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 9px 0;
+  align-items: center;
+}
+.configRow label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.brief {
+  padding: 12px;
+  background: #102f39;
+  border-left: 3px solid var(--gold);
+  font-size: 13px;
+  margin: 16px 0;
+}
+.results {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 20px 0;
+}
+.results div {
+  background: #11323d;
+  padding: 12px;
+  border-radius: 5px;
+}
+.results strong {
+  display: block;
+  font-size: 22px;
+  color: var(--gold);
+}
+#death {
+  display: none;
+}
+#error {
+  display: none;
+  color: #ffad9b;
+  padding: 10px;
+  background: #48272a;
+  margin-top: 10px;
+}
+@media (max-width: 850px) {
+  #layout {
+    grid-template-columns: 195px 1fr;
+  }
+  aside {
+    padding: 10px 9px;
+    gap: 8px;
+  }
+  #hud {
+    font-size: 11px;
+  }
+  aside header strong {
+    font-size: 17px;
+  }
+  #help {
+    width: 210px;
+    font-size: 11px;
+  }
+  #msg {
+    font-size: 13px;
+    top: 8px;
+  }
+  .card {
+    padding: 20px;
+  }
+}
+#port {
+  display: none;
+  z-index: 12;
+}
+.portCard {
+  width: min(830px, 96vw);
+}
+#campaignTrack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 15px 0;
+}
+.missionStep {
+  font-size: 11px;
+  border: 1px solid #34545b;
+  border-radius: 4px;
+  padding: 6px 8px;
+  color: #9cb9bb;
+}
+.missionStep.current {
+  border-color: #e6c77b;
+  color: #ffe4a5;
+}
+.missionStep.done {
+  border-color: #5d9c7a;
+  color: #8dd8ad;
+}
+#upgradePoints {
+  font-size: 18px;
+  color: #e6c77b;
+  margin: 18px 0 8px;
+}
+#upgradeList {
+  display: grid;
+  gap: 8px;
+}
+.upgradeCard {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 14px;
+  background: #102f39;
+  padding: 13px;
+  border-radius: 6px;
+}
+.upgradeCard p {
+  font-size: 12px;
+  color: #a9c4c6;
+  margin: 5px 0;
+}
+.level {
+  margin-left: 10px;
+  font-size: 12px;
+  color: #e6c77b;
+}
+.portCard .actions {
+  position: sticky;
+  bottom: -28px;
+  background: #0b222d;
+  padding: 12px 0;
+  margin-bottom: 0;
+}
+#campaignLog {
+  margin-top: 15px;
+  line-height: 1.65;
+}
+@media (max-width: 600px) {
+  .upgradeCard {
+    grid-template-columns: 1fr;
+  }
+  .portCard .actions {
+    bottom: -20px;
+  }
+  .missionStep {
+    font-size: 10px;
+  }
+}
+
+#logOverlay {
+  display: none;
+  z-index: 30;
+}
+#logEntries {
+  max-height: 55vh;
+  overflow: auto;
+  margin: 14px 0;
+}
+#logEntries p {
+  padding: 8px 0;
+  border-bottom: 1px solid #34545b;
+  font-size: 13px;
+}
+.approachPanel {
+  border-top: 1px solid #34545b;
+  padding-top: 12px;
+}
+#approachChart {
+  display: block;
+  width: 100%;
+  max-height: 230px;
+  margin: 12px auto;
+}
+#approachChoices {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+#approachChoices button {
+  text-align: left;
+  font-size: 12px;
+}
+#approachChoices span {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  margin-top: 6px;
+}
+.portCard .actions button {
+  flex-basis: 130px;
+}
+@media (max-width: 650px) {
+  #approachChoices {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Pier and personnel sheets: worn timber, dark water, warm paper. */
+.portCard {
+  width: min(1050px, 96vw);
+  border-radius: 3px;
+  background: #172727;
+  border-color: #80765c;
+}
+.portCard .actions {
+  background: #172727;
+}
+.sortieChoices {
+  display: flex;
+  gap: 10px;
+  margin: 12px 0 20px;
+}
+.sortieChoices button {
+  flex: 1;
+  border-radius: 2px;
+}
+.crewStation {
+  border: 1px solid #736b56;
+  background: #102328;
+  padding: 16px;
+  margin-bottom: 22px;
+}
+.crewHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.crewHeading h3 {
+  font:
+    26px Georgia,
+    serif;
+  margin: 0 0 8px;
+  color: #ede1c2;
+}
+.crewHeading strong {
+  color: #d8bf83;
+  font: 14px monospace;
+}
+.crewPier {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1000/360;
+  overflow: hidden;
+  border: 1px solid #645f4e;
+}
+#pierArt {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.pierSailor {
+  position: absolute;
+  width: 9%;
+  height: 25%;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  transform: translateX(-50%);
+  border-radius: 0;
+  color: #fff0c6;
+}
+.pierSailor:hover {
+  background: #e3c78a18;
+}
+.pierSailor svg {
+  display: block;
+  height: 75%;
+  width: 100%;
+  overflow: visible;
+}
+.pierSailor span {
+  display: block;
+  white-space: nowrap;
+  font: clamp(8px, 1vw, 12px) monospace;
+  text-shadow: 0 2px 3px #000;
+  text-align: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.pierSailor.inspected svg {
+  filter: drop-shadow(0 0 3px #f1d998);
+}
+.pierSailor.aboard span {
+  color: #bfddb8;
+}
+.sailorBody {
+  transform-origin: 32px 32px;
+  animation: watchSway 3.6s ease-in-out infinite alternate;
+}
+@keyframes watchSway {
+  from {
+    transform: rotate(-3deg);
+  }
+  to {
+    transform: rotate(3deg);
+  }
+}
+#crewQuote {
+  font:
+    italic 15px/1.5 Georgia,
+    serif;
+  color: #f0deaf;
+  border-left: 3px solid #baa36b;
+  background: #243531;
+  padding: 12px;
+  margin: 12px 0;
+  min-height: 48px;
+}
+.crewRecord {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: center;
+  color: #2b312c;
+  background: #d5c9aa;
+  border: 1px solid #f0e0b9;
+  padding: 18px;
+  font:
+    14px/1.5 Georgia,
+    serif;
+}
+.crewRecord h3 {
+  margin: 5px 0 10px;
+  font-size: 21px;
+}
+.personnelStamp {
+  font: 10px monospace;
+  letter-spacing: 0.07em;
+  color: #645442;
+}
+.crewRecord p {
+  margin: 4px 0;
+}
+.crewPerk {
+  color: #294b36;
+}
+.crewDrawback {
+  color: #773d30;
+}
+.crewRecord button {
+  background: #344b43;
+  border-radius: 2px;
+  max-width: 185px;
+}
+#crewManifest {
+  font: 12px/1.5 monospace;
+  color: #c2c5ad;
+  padding-top: 12px;
+}
+@media (max-width: 650px) {
+  .crewRecord {
+    grid-template-columns: 1fr;
+  }
+  .crewStation {
+    padding: 10px;
+  }
+  .crewRecord button {
+    max-width: none;
+  }
+  .crewHeading h3 {
+    font-size: 22px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sailorBody {
+    animation: none;
+  }
+}
+
+/* 1944 Gato-class: pressure-hull instruments and chart-table paperwork. */
+:root {
+  --ink: #e2dfca;
+  --muted: #b5b7a5;
+  --edge: #626857;
+  --gold: #c6ae71;
+  --green: #a7b990;
+}
+body {
+  background: #161c1a;
+  font-family: "Arial Narrow", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+button,
+select {
+  border-radius: 1px;
+  border: 1px solid #797b67;
+  background: #343f37;
+  color: #e8e1c7;
+  box-shadow:
+    inset 0 1px #9b9b7b55,
+    inset 0 -2px #0b100e77;
+  font:
+    700 11px/1.4 "Arial Narrow",
+    Arial,
+    sans-serif;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  padding: 10px 12px;
+}
+button:hover {
+  background: #465046;
+}
+button:active {
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 3px #101710;
+}
+button.primary {
+  background: #b9aa7c;
+  color: #222b24;
+  border-color: #867a53;
+}
+button.primary:hover {
+  background: #ccbd8d;
+}
+button:disabled {
+  opacity: 0.48;
+}
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+summary:focus-visible,
+.padFocus {
+  outline: 3px solid #e1bd61 !important;
+  outline-offset: 3px;
+}
+.padFocus {
+  box-shadow: inset 0 0 0 2px #27291e !important;
+}
+input[type="checkbox"] {
+  accent-color: #46513c;
+  width: 17px;
+  height: 17px;
+  cursor: pointer;
+}
+aside {
+  background:
+    repeating-linear-gradient(0deg, transparent 0 59px, #a7a78506 60px), #2a342e;
+  border-right: 5px ridge #626a58;
+  padding: 15px 13px;
+  box-shadow: inset 3px 0 #111b1677;
+}
+aside header {
+  position: relative;
+  background: #1a211d;
+  color: #bbae85;
+  border: 3px double #777c63;
+  text-align: center;
+  padding: 12px 8px;
+  font:
+    10px/1.5 "Arial Narrow",
+    Arial,
+    sans-serif;
+  letter-spacing: 0.13em;
+}
+aside header::before,
+aside header::after {
+  content: "⊖";
+  position: absolute;
+  top: 3px;
+  color: #838a71;
+  font-size: 12px;
+}
+aside header::before {
+  left: 4px;
+}
+aside header::after {
+  right: 4px;
+}
+aside header strong {
+  font:
+    700 23px/1.4 "Arial Narrow",
+    Arial,
+    sans-serif;
+  color: #ede5c9;
+  letter-spacing: 0.12em;
+}
+aside header span {
+  font-size: 9px;
+}
+#hud {
+  font:
+    12px/1.45 "Arial Narrow",
+    Arial,
+    sans-serif;
+}
+#hud section {
+  border-top: 2px groove #707761;
+  padding-top: 12px;
+  margin-top: 12px;
+}
+#hud .label {
+  display: block;
+  border: 1px solid #646b55;
+  background: #171f1a;
+  color: #d4ccb0;
+  font-size: 9px;
+  letter-spacing: 0.07em;
+  padding: 4px 5px;
+  margin-bottom: 8px;
+}
+#hud .row {
+  border-bottom: 1px solid #a1a18416;
+  padding: 2px 0;
+  gap: 7px;
+}
+#hud .row b {
+  font-family: "Courier New", monospace;
+  color: #e3dfc6;
+}
+#hud .bar {
+  height: 10px;
+  border: 1px solid #8a896d;
+  background: #141c16;
+  border-radius: 0;
+  position: relative;
+}
+#hud .bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 9%,
+    #1b221c 9% 10%
+  );
+  pointer-events: none;
+}
+#hud .bar i {
+  filter: saturate(0.45);
+}
+#hud .green::before,
+#hud .yellow::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 5px;
+  border-radius: 50%;
+  border: 1px solid #b7ae80;
+  background: currentColor;
+}
+.green {
+  color: #acbe97;
+}
+.yellow {
+  color: #ceb57a;
+}
+.red {
+  color: #d49479;
+}
+.controls {
+  border-top: 2px groove #777d66;
+  padding-top: 10px;
+  gap: 7px;
+}
+.controls button {
+  background: #232e26;
+  border: 2px groove #7a8069;
+  padding: 8px 4px;
+  font-size: 10px;
+}
+#stage {
+  background: #111a18;
+  border-left: 2px solid #141a16;
+}
+#msg {
+  font:
+    700 14px/1.5 "Arial Narrow",
+    Arial,
+    sans-serif;
+  color: #e9dbb4;
+  text-shadow: 0 2px #111;
+}
+#help {
+  border-radius: 1px;
+  border: 3px double #a99e7c;
+  background: #dad0b4;
+  color: #2d332b;
+  font:
+    11px/1.5 "Courier New",
+    monospace;
+  box-shadow: none;
+}
+#help summary {
+  color: #354234;
+  font-weight: 700;
+}
+#help .muted {
+  color: #555d4b;
+}
+.tubePanel {
+  padding: 7px 5px;
+  margin: 8px 0;
+  border: 2px groove #767c63;
+  background: #1b241e;
+}
+.tubeBank {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  margin: 4px 0;
+}
+.tubeBank > span {
+  font:
+    8px "Arial Narrow",
+    Arial,
+    sans-serif;
+  color: #c2b999;
+  letter-spacing: 0.05em;
+}
+.tubeBank > div {
+  display: flex;
+  gap: 7px;
+}
+.tubeLamp {
+  font:
+    8px "Courier New",
+    monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: #b4b498;
+}
+.tubeLamp i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #686e57;
+  background: #101a13;
+  box-shadow: inset 0 1px 2px #0009;
+}
+.tubeLamp.ready i {
+  background: #a4b080;
+  border-color: #7d8b65;
+}
+.tubeLamp.loading i {
+  background: #c2a463;
+  border-color: #92815b;
+}
+.overlay {
+  background:
+    repeating-linear-gradient(0deg, #b0b7a104 0 1px, transparent 1px 38px),
+    repeating-linear-gradient(90deg, #b0b7a104 0 1px, transparent 1px 38px),
+    #19231ff7;
+}
+.card {
+  border-radius: 1px;
+  background:
+    repeating-linear-gradient(0deg, #5c53350a 0 1px, transparent 1px 4px),
+    #ddd3b9;
+  color: #283329;
+  border: 1px solid #9e9270;
+  box-shadow: 5px 7px 0 #111a1788;
+  padding: 28px;
+  font:
+    13px/1.5 "Courier New",
+    monospace;
+}
+.card .muted {
+  color: #58614f;
+}
+.card .yellow {
+  color: #75602e;
+}
+.card .green {
+  color: #35593b;
+}
+.card .eyebrow {
+  color: #596049;
+  font:
+    700 10px/1.5 "Courier New",
+    monospace;
+  letter-spacing: 0.12em;
+}
+.card h1 {
+  font:
+    700 36px/1.3 "Arial Narrow",
+    Arial,
+    sans-serif;
+  letter-spacing: 0.12em;
+  border-bottom: 3px double #777657;
+  padding-bottom: 6px;
+}
+.card h2 {
+  font:
+    700 25px/1.25 "Arial Narrow",
+    Arial,
+    sans-serif;
+  letter-spacing: 0.025em;
+}
+.card h3 {
+  font:
+    700 14px "Courier New",
+    monospace;
+}
+.documentTitle {
+  font:
+    700 12px/1.4 "Courier New",
+    monospace;
+  letter-spacing: 0.14em;
+  color: #4b5141;
+  margin: 8px 0 14px;
+}
+#splash .card {
+  border: 11px solid #534c37;
+  border-top: 30px solid #534c37;
+  position: relative;
+  outline: 1px solid #8b8467;
+}
+#splash .card::before {
+  content: "";
+  display: block;
+  width: 135px;
+  height: 17px;
+  margin: -27px auto 25px;
+  background: #848873;
+  border: 3px ridge #a5a58c;
+}
+#splash::before {
+  content: "PACIFIC OCEAN\A SUBMARINE FORCE\A CHART NO. 1944";
+  white-space: pre;
+  position: fixed;
+  left: 4vw;
+  bottom: 12vh;
+  width: 230px;
+  padding: 160px 20px 35px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 32px, #525d481c 32px 33px),
+    repeating-linear-gradient(0deg, transparent 0 32px, #525d481c 32px 33px),
+    #9e9c7c;
+  color: #4a5544;
+  border: 1px solid #b9b18a;
+  transform: rotate(-9deg);
+  font:
+    12px/2 "Courier New",
+    monospace;
+  pointer-events: none;
+  z-index: -1;
+}
+#splash .brief {
+  background: #cfc5a9;
+  border-left: 3px solid #787856;
+}
+.brief {
+  background: #e4dcc6;
+  color: #313d30;
+  border: 1px solid #a59e80;
+  border-left: 4px double #77765a;
+  position: relative;
+  padding: 17px;
+  font:
+    13px/1.6 "Courier New",
+    monospace;
+}
+#port .brief::before {
+  content: "COMSUBPAC / PRIMARY ASSIGNMENT";
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: #667052;
+  border-bottom: 1px solid #b4aa89;
+  padding-bottom: 6px;
+  margin-bottom: 9px;
+}
+.actions {
+  gap: 9px;
+  margin: 16px 0;
+}
+.config {
+  border-top: 3px double #8b8b6d;
+  margin-top: 18px;
+  padding-top: 12px;
+}
+.configRow {
+  padding: 6px 0;
+  border-bottom: 1px dotted #99977a;
+}
+.configRow label {
+  gap: 12px;
+}
+.config select {
+  background: #ddd3b9;
+  color: #293a2a;
+  border: 1px solid #777d60;
+  min-width: 112px;
+}
+.controllerStatus {
+  border: 1px dashed #939477;
+  padding: 9px;
+  font:
+    11px/1.5 "Courier New",
+    monospace;
+  color: #4a5845;
+}
+#port .portCard {
+  width: min(1050px, 96vw);
+  background: #c8c4a9;
+  border: 9px solid #414d3f;
+  box-shadow: none;
+}
+#port .portCard > .eyebrow {
+  border-bottom: 2px solid #727c60;
+  padding-bottom: 8px;
+}
+#campaignTrack {
+  gap: 0;
+  border-top: 2px solid #808369;
+  border-bottom: 2px solid #808369;
+  background: #dcd5bc;
+}
+.missionStep {
+  border: 0;
+  border-right: 1px solid #a1a084;
+  border-radius: 0;
+  color: #6e735d;
+  font:
+    11px/1.5 "Courier New",
+    monospace;
+  flex: 1 1 140px;
+  padding: 10px;
+}
+.missionStep.current {
+  color: #2d3d2f;
+  border-bottom: 3px solid #65744f;
+  font-weight: 700;
+}
+.missionStep.done {
+  color: #754c3b;
+  text-decoration: underline;
+  text-decoration-style: double;
+}
+.missionStep.done::after {
+  content: " / COMPLETED";
+  font-size: 8px;
+}
+.approachPanel {
+  padding: 18px;
+  background: #e3dcc4;
+  border: 1px solid #9b9e7f;
+  margin: 15px 0;
+}
+.approachPanel h3 {
+  margin-top: 0;
+}
+#approachChart {
+  border: 1px solid #989a7f;
+  max-height: 260px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 24px, #64785622 24px 25px),
+    repeating-linear-gradient(0deg, transparent 0 24px, #64785622 24px 25px),
+    #dbd9bd;
+}
+#approachChart > rect {
+  fill: transparent;
+  stroke: #687a57;
+  rx: 0;
+}
+#approachChart > path {
+  stroke: #5f6244;
+}
+#approachChart > text {
+  fill: #4c6348;
+  font-family: "Courier New", monospace;
+}
+#approachChart > circle {
+  stroke: #4f6e4a;
+}
+#approachChart #approachMarker {
+  fill: #955942;
+  stroke: #75452e;
+}
+#approachChoices button {
+  background: #d6d0b5;
+  color: #364730;
+  border: 1px solid #8c9674;
+  box-shadow: none;
+  text-transform: none;
+  font-family: "Courier New", monospace;
+}
+#approachChoices button.primary {
+  outline: 2px solid #5b6b45;
+  outline-offset: -5px;
+  background: #c9c7a6;
+}
+.refitHeading {
+  padding: 12px 0;
+  border-top: 3px double #788063;
+}
+#upgradePoints {
+  color: #3c4a31;
+  font:
+    700 16px "Courier New",
+    monospace;
+}
+#upgradeList {
+  gap: 0;
+  border: 1px solid #949578;
+  background: #e0d7bd;
+}
+.upgradeCard {
+  border: 0;
+  border-bottom: 1px solid #9b9c7f;
+  border-radius: 0;
+  background: transparent;
+  padding: 15px;
+  font:
+    13px "Courier New",
+    monospace;
+}
+.upgradeCard p {
+  color: #515b44;
+  line-height: 1.6;
+}
+.upgradeCard .level {
+  color: #6e5e37;
+}
+.upgradeCard button {
+  background: #ded4b5;
+  color: #394a30;
+  border: 2px solid #788565;
+  box-shadow: none;
+}
+#campaignLog {
+  padding: 12px;
+  border-top: 1px dashed #888f70;
+  background: #d8d1b7;
+}
+.portCard .actions {
+  background: #c8c4a9;
+  border-top: 2px solid #818968;
+  bottom: -28px;
+  z-index: 2;
+}
+.crewStation {
+  background: #293b32;
+  border: 3px double #7c856b;
+  color: #e1ddc7;
+  padding: 15px;
+}
+.crewStation .eyebrow {
+  color: #bfb08a;
+}
+.crewHeading h3 {
+  color: #e4d6b1;
+  font:
+    25px Georgia,
+    serif;
+}
+.crewHeading strong {
+  color: #c9b881;
+}
+.crewStation .pierSailor {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.crewStation .pierSailor.inspected svg {
+  filter: none;
+}
+.pierSailor.inspected {
+  outline: 1px dashed #cfbc83;
+  outline-offset: 2px;
+}
+#crewQuote {
+  background: #354537;
+  border-left: 3px solid #aaa06c;
+  color: #e1d7b5;
+}
+.crewRecord {
+  background: #d9cfb2;
+  border: 1px solid #a99f7a;
+  font:
+    12px/1.5 "Courier New",
+    monospace;
+}
+.crewRecord h3 {
+  font:
+    700 18px "Courier New",
+    monospace;
+}
+.crewRecord .crewPerk {
+  color: #2e5034;
+}
+.crewRecord .crewDrawback {
+  color: #7a4533;
+}
+.crewRecord button {
+  color: #e6dec3;
+}
+.results {
+  display: block;
+  border-top: 2px solid #7d8467;
+}
+.results div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  border-radius: 0;
+  border-bottom: 1px solid #a9a588;
+  background: none;
+  padding: 11px 0;
+}
+.results .label {
+  color: #53604c;
+  font:
+    11px "Courier New",
+    monospace;
+}
+.results strong {
+  color: #313e2d;
+  font:
+    700 18px "Courier New",
+    monospace;
+  text-align: right;
+}
+#death #resultTitle {
+  display: inline-block;
+  border: 3px double #845c47;
+  padding: 8px 14px;
+  color: #79513e;
+  font:
+    700 23px "Courier New",
+    monospace;
+}
+#logOverlay .card {
+  border-left: 19px solid #4c4936;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 28px, #647c5822 28px 29px),
+    #e0d8bc;
+}
+#logEntries {
+  max-height: 55vh;
+}
+.card #logEntries p {
+  color: #354630;
+  border-color: #9a9f7e;
+  font:
+    13px/1.6 "Courier New",
+    monospace;
+}
+#helpOverlay {
+  z-index: 35;
+}
+#fieldGuideText {
+  max-height: 62vh;
+  overflow: auto;
+  margin: 15px 0;
+  padding-right: 10px;
+}
+#controllerHint {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: #1b261feb;
+  border-top: 1px solid #8a9275;
+  color: #e5dcc0;
+  padding: 8px 12px;
+  text-align: center;
+  font:
+    11px/1.5 "Courier New",
+    monospace;
+  pointer-events: none;
+}
+body:has(#controllerHint:not([hidden])) .overlay {
+  padding-bottom: 46px;
+}
+body:has(#controllerHint:not([hidden])) .overlay > .card {
+  max-height: calc(100dvh - 70px);
+}
+@media (max-width: 850px) {
+  #hud {
+    font-size: 10px;
+  }
+  .tubeBank > div {
+    gap: 4px;
+  }
+  .tubeLamp i {
+    width: 8px;
+    height: 8px;
+  }
+  .tubeBank > span {
+    font-size: 7px;
+  }
+  .card {
+    padding: 20px;
+  }
+  .portCard .actions {
+    bottom: -20px;
+  }
+  #splash::before {
+    display: none;
+  }
+}
+
+</style>
+  </head>
+  <body>
+    <div id="layout">
+      <aside>
+        <header>
+          UNITED STATES NAVY<strong>USS GATO</strong
+          ><span>SS-212 · PATROL CONTROL</span>
+        </header>
+        <div id="hud"></div>
+        <div class="controls">
+          <button id="saveBtn">Save</button
+          ><button id="loadBtn">Load save</button
+          ><button id="logBtn" class="wide">Patrol Log · O</button
+          ><button id="menuBtn" class="wide">Pause / Menu · Esc</button
+          ><span id="saveStatus">Autosave on</span>
+        </div>
+      </aside>
+      <main id="stage">
+        <canvas id="game" aria-label="Submarine patrol battlefield"></canvas>
+        <div id="msg" aria-live="polite"></div>
+        <details id="help">
+          <summary>Controls &amp; field guide</summary>
+          <div class="helpbody">
+            <p>
+              <b>Keyboard</b><br />W/S: throttle · A/D: rudder<br />←/→: shared
+              aim · 1/2/3 or Tab: gun<br />Space: torpedo · F: selected gun<br />Q:
+              cycle surface / periscope / deep<br />Z/X/C: surface / periscope /
+              deep<br />E: sonar · R: gun reload · T: tubes<br />G: track target
+              · V: torpedo spread<br />N: silent running · B: decoy<br />J: time
+              ×1/×2/×4 · O: patrol log<br />H: emergency repair (upgrade or
+              Chief required)<br />K: save · L: load · Esc: pause
+            </p>
+            <p>
+              <b>Xbox controller</b><br />Left stick: throttle / rudder<br />Right
+              stick: shared aim / vertical HUD scroll<br />LT: torpedo · RT:
+              selected gun<br />LB/RB: gun · B: cycle depth<br />A: sonar · X:
+              gun reload<br />D-pad Down: torpedo reload<br />R-stick click:
+              track · D-pad Right: spread<br />D-pad Left: silent · L-stick
+              click: decoy<br />View: time compression<br />D-pad Up: emergency
+              repair<br />Y: save · Start: pause / resume<br /><b>Menus:</b>
+              D-pad / left stick: move · A: select · B: back<br />Right stick:
+              scroll · LB/RB: page<br />X: log · Y: field guide<br />Left/right
+              or A: change selected resistance setting
+            </p>
+            <p>
+              <b>Patrol</b><br />Complete the current mission, then stay in the
+              southern exit with no enemy contact for 15 seconds. An early
+              return lets you refit and retry. Primary objectives earn 1 upgrade
+              point; patrols 2–4 offer optional bonus points. Spend points at
+              port; each upgrade has two levels.
+            </p>
+            <p>
+              <b>Survival</b><br />Deep water reduces detection. Slow down to
+              listen and break contact. Torpedoes launch at 0–15 m. Battery
+              charges surfaced; high underwater speed drains it faster. At zero
+              battery, emergency surfacing starts.
+            </p>
+            <p>
+              <b>Tactical controls</b><br />Observe targets for better lead
+              estimates. G cycles observed contacts; aim manually at the lead
+              diamond. Maneuvers and lost contact reduce confidence. V selects
+              single or three-torpedo spreads. Silent running pauses reloads.
+              Decoys may distract distant escorts; they are ineffective at close
+              range. Time compression stops near threats and objectives.
+            </p>
+            <p>
+              <b>Weapons</b><br />3-inch: ship hulls. 40 mm: aircraft and small
+              craft. 20 mm: close aircraft defense. Mounts reload independently.
+              Shared aim remains relative to your hull.
+            </p>
+            <p class="muted">
+              Arcade simulation. Distances and speeds use game units, not
+              real-world performance.
+            </p>
+          </div>
+        </details>
+      </main>
+    </div>
+    <div id="splash" class="overlay">
+      <div class="card">
+        <div class="eyebrow">UNITED STATES SUBMARINE FORCE</div>
+        <h1>USS GATO</h1>
+        <div class="documentTitle">WAR PATROL ORDERS</div>
+        <p class="muted">
+          Strike the convoy. Break contact. Bring your crew home.
+        </p>
+        <div class="brief">
+          <b>Patrol orders:</b> Complete five assignments: convoy attack, tanker
+          interdiction, rescue, transport interception, and heavy opposition.
+          Return to port between missions to upgrade your boat and crew.
+        </div>
+        <div class="actions">
+          <button id="resumeBtn" class="primary">Resume Patrol</button
+          ><button id="newPatrolBtn">New Campaign</button
+          ><button id="loadPatrolBtn">Load Saved Patrol</button>
+        </div>
+        <div class="actions">
+          <button id="exportBtn">Export Campaign JSON</button
+          ><button id="importBtn">Import Campaign JSON</button>
+        </div>
+        <input
+          id="importFile"
+          type="file"
+          accept=".json,application/json"
+          hidden
+        />
+        <p class="small muted">
+          Import replaces the current session after validation. Export first to
+          keep it. JSON saves transfer between versions and browsers.
+        </p>
+        <p id="transferStatus" class="small yellow" aria-live="polite"></p>
+        <p id="controllerStatus" class="controllerStatus" aria-live="polite">
+          Xbox controller: press a button to connect.
+        </p>
+        <div class="actions utilityActions">
+          <button id="menuLogBtn">Patrol Log · X</button
+          ><button id="menuHelpBtn">Field Guide · Y</button>
+        </div>
+        <div class="config">
+          <h3>PATROL CONDITIONS</h3>
+          <div class="configRow">
+            <label for="difficulty">Enemy difficulty</label
+            ><select id="difficulty">
+              <option value="easy">Easy</option>
+              <option value="normal" selected>Normal</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+          <div class="configRow">
+            <label
+              ><input id="cfgAircraft" type="checkbox" checked /> Aircraft
+              patrols</label
+            >
+          </div>
+          <div class="configRow">
+            <label
+              ><input id="cfgHeavy" type="checkbox" checked /> Heavy surface
+              hunters</label
+            >
+          </div>
+          <div class="configRow">
+            <label
+              ><input id="cfgAutosave" type="checkbox" checked />
+              Autosave</label
+            >
+          </div>
+          <div class="configRow">
+            <label
+              ><input id="cfgSonarPenalty" type="checkbox" checked /> Active
+              sonar alerts nearby escorts</label
+            >
+          </div>
+          <div class="configRow">
+            <label
+              ><input id="cfgSound" type="checkbox" checked /> Sound
+              effects</label
+            >
+          </div>
+        </div>
+        <p id="saveFound" class="small muted"></p>
+        <p class="small muted">
+          Loading restores the saved difficulty and patrol options. Compatible
+          older saves available to this page are migrated automatically.
+        </p>
+        <div id="error"></div>
+      </div>
+    </div>
+    <div id="death" class="overlay">
+      <div class="card">
+        <div class="eyebrow">USS GATO · SS-212</div>
+        <div class="documentTitle">WAR PATROL REPORT</div>
+        <h2 id="resultTitle">PATROL COMPLETE</h2>
+        <p id="resultSubtitle" class="muted"></p>
+        <div id="deathScore" class="results"></div>
+        <div class="actions">
+          <button id="nextPatrolBtn" class="primary">Return to Port</button
+          ><button id="restartBtn">New Campaign</button
+          ><button id="resultMenuBtn">Main Menu</button>
+        </div>
+      </div>
+    </div>
+    <div id="port" class="overlay">
+      <div class="card portCard">
+        <div class="eyebrow">SUBMARINE TENDER · REFIT &amp; ORDERS</div>
+        <h2 id="portTitle"></h2>
+        <div class="sortieChoices">
+          <button id="campaignSortieBtn">Campaign orders</button
+          ><button id="harborSortieBtn">Night Harbor Raid</button>
+        </div>
+        <div class="brief">
+          <p id="portBrief"></p>
+          <p id="portBonus" class="yellow small"></p>
+        </div>
+        <section class="crewStation" aria-label="Crew loadout">
+          <div class="crewHeading">
+            <div>
+              <div class="eyebrow">PIER 07 · PERSONNEL DETAIL</div>
+              <h3>Hot Runners</h3>
+            </div>
+            <strong id="crewCount">0 / 3 assigned</strong>
+          </div>
+          <p class="small">
+            Click a sailor on the pier to inspect their record. Assign up to
+            three. All five are available.
+          </p>
+          <div id="crewPier" class="crewPier">
+            <svg id="pierArt" viewBox="0 0 1000 360" aria-hidden="true"></svg>
+            <div id="crewSailors"></div>
+          </div>
+          <div id="crewQuote" role="status" aria-live="polite">
+            “No volunteers? That’s how you get volunteered.” — Pier watch
+          </div>
+          <div id="crewRecord" class="crewRecord"></div>
+          <div id="crewManifest"></div>
+        </section>
+        <div id="campaignTrack"></div>
+        <p id="portStatus" class="muted small" aria-live="polite"></p>
+        <div class="approachPanel" id="approachPanel">
+          <h3>Choose your interception</h3>
+          <p id="conditions" class="small muted"></p>
+          <svg
+            id="approachChart"
+            viewBox="0 0 400 250"
+            role="img"
+            aria-label="Patrol chart: eastbound contact lane in the north; chosen approach south of it"
+          >
+            <rect
+              x="1"
+              y="1"
+              width="398"
+              height="248"
+              rx="5"
+              fill="#071e2c"
+              stroke="#3b6269"
+            />
+            <path
+              d="M35 78 H370 M360 72 L370 78 L360 84"
+              stroke="#e6c77b"
+              fill="none"
+              stroke-width="2"
+            />
+            <text
+              x="200"
+              y="55"
+              text-anchor="middle"
+              fill="#e6c77b"
+              font-size="12"
+            >
+              ESTIMATED SHIPPING LANE →
+            </text>
+            <circle cx="200" cy="227" r="20" fill="none" stroke="#8dd8ad" />
+            <text
+              x="200"
+              y="230"
+              text-anchor="middle"
+              fill="#8dd8ad"
+              font-size="9"
+            >
+              EXIT
+            </text>
+            <circle
+              id="approachMarker"
+              cx="200"
+              cy="175"
+              r="7"
+              fill="#b7eeeb"
+            />
+            <text x="12" y="20" fill="#9cb9bb" font-size="11">N ↑</text>
+          </svg>
+          <p id="contactEstimate" class="small"></p>
+          <div id="approachChoices"></div>
+        </div>
+        <div class="documentTitle refitHeading">
+          SUBMARINE TENDER — REFIT AUTHORIZATION
+        </div>
+        <div id="upgradePoints"></div>
+        <p class="muted small">
+          Each level costs 1 point. Upgrades carry through the campaign; maximum
+          2 levels each.
+        </p>
+        <div id="upgradeList"></div>
+        <p id="campaignLog" class="muted small"></p>
+        <div class="actions">
+          <button id="departBtn" class="primary">Depart</button
+          ><button id="portSaveBtn">Save Campaign</button
+          ><button id="portExportBtn">Export JSON</button
+          ><button id="portMenuBtn">Main Menu</button>
+        </div>
+      </div>
+    </div>
+    <div id="logOverlay" class="overlay">
+      <div class="card">
+        <div class="eyebrow">PATROL EVENT LOG · PAUSED</div>
+        <h2>Captain’s log</h2>
+        <div id="logEntries"></div>
+        <button id="closeLogBtn" class="primary">Close Log · O / Esc</button>
+      </div>
+    </div>
+    <div id="helpOverlay" class="overlay" style="display: none">
+      <div class="card">
+        <div class="eyebrow">USS GATO · OPERATING CARD</div>
+        <h2>Controls &amp; Field Guide</h2>
+        <div id="fieldGuideText"></div>
+        <button id="closeHelpBtn">Close Field Guide · B</button>
+      </div>
+    </div>
+    <div id="controllerHint" hidden></div>
+    <script>
+"use strict";
+// Presentation/input adapter only. No gameplay state is serialized here.
+const menuPad = {
+  screen: null,
+  token: null,
+  index: 0,
+  direction: null,
+  repeatAt: 0,
+  engaged: false,
+  releaseGate: false,
+  previousPad: null,
+  crewReturn: null,
+};
+function interfaceScreen() {
+  if (document.getElementById("helpOverlay")?.style.display === "flex")
+    return document.getElementById("helpOverlay");
+  if (game?.logOpen) return document.getElementById("logOverlay");
+  if (document.getElementById("port").style.display === "flex")
+    return document.getElementById("port");
+  if (splash.style.display !== "none") return splash;
+  if (game?.over) return death;
+  return null;
+}
+function menuItems(root) {
+  return [
+    ...root.querySelectorAll('button, select, input[type="checkbox"], summary'),
+  ].filter(
+    (e) =>
+      !e.disabled &&
+      e.getClientRects().length &&
+      getComputedStyle(e).visibility !== "hidden",
+  );
+}
+function menuToken(e) {
+  return (
+    e?.id ||
+    e?.dataset?.upgrade ||
+    e?.querySelector("b")?.textContent ||
+    e?.textContent?.trim()
+  );
+}
+function focusMenuItem(items, index, scroll = true) {
+  if (!items.length) return;
+  index = (index + items.length) % items.length;
+  const target = items[index];
+  menuPad.index = index;
+  menuPad.token = menuToken(target);
+  document
+    .querySelectorAll(".padFocus")
+    .forEach((e) => e.classList.remove("padFocus"));
+  target.classList.add("padFocus");
+  target.focus({ preventScroll: true });
+  if (scroll)
+    target.scrollIntoView({
+      block: "nearest",
+      inline: "nearest",
+      behavior: "instant",
+    });
+}
+function showFieldGuide() {
+  document.getElementById("fieldGuideText").innerHTML =
+    document.querySelector("#help .helpbody").innerHTML;
+  document.getElementById("helpOverlay").style.display = "flex";
+  clearInput();
+}
+function closeFieldGuide() {
+  document.getElementById("helpOverlay").style.display = "none";
+  clearInput();
+}
+function controllerBack(root) {
+  if (root.id === "helpOverlay") closeFieldGuide();
+  else if (root.id === "logOverlay") toggleLog();
+  else if (
+    root.id === "port" &&
+    menuPad.crewReturn &&
+    menuPad.token === "assignCrewBtn"
+  ) {
+    const items = menuItems(root),
+      index = items.findIndex((e) => e.id === menuPad.crewReturn);
+    if (index >= 0) focusMenuItem(items, index);
+    menuPad.crewReturn = null;
+  } else if (root.id === "splash") {
+    if (game) closeSplash();
+  } else openSplash();
+}
+function menuDirection() {
+  if (pressedPad(12) || axis(1) < -0.55) return "up";
+  if (pressedPad(13) || axis(1) > 0.55) return "down";
+  if (pressedPad(14) || axis(0) < -0.55) return "left";
+  if (pressedPad(15) || axis(0) > 0.55) return "right";
+  return null;
+}
+function changeMenuOption(el, direction) {
+  const options = [...el.options].filter((o) => !o.disabled);
+  const index = options.findIndex((o) => o.value === el.value);
+  el.value =
+    options[(index + direction + options.length) % options.length].value;
+  el.dispatchEvent(new Event("change", { bubbles: true }));
+}
+function updateControllerMenus(dt) {
+  // VM logic suites have no layout DOM. The browser suite exercises this adapter.
+  if (typeof document.querySelectorAll !== "function") return false;
+  const root = interfaceScreen(),
+    now = performance.now();
+  const padId = pad ? `${pad.index}:${pad.id}` : null;
+  const hint = document.getElementById("controllerHint");
+  if (
+    menuPad.previousPad &&
+    !padId &&
+    game &&
+    !game.over &&
+    game.phase === "patrol" &&
+    !root
+  ) {
+    openSplash();
+    document.getElementById("controllerStatus").textContent =
+      "Controller disconnected. Reconnect or use keyboard and mouse.";
+  }
+  menuPad.previousPad = padId;
+  const buttonsDown = pad?.buttons.some((b) => b.pressed),
+    axesDown = pad?.axes.some((a) => Math.abs(a) > 0.25);
+  if (!root) {
+    if (menuPad.screen) {
+      menuPad.releaseGate = !!pad;
+      menuPad.screen = null;
+      menuPad.token = null;
+      document
+        .querySelectorAll(".padFocus")
+        .forEach((e) => e.classList.remove("padFocus"));
+    }
+    hint.hidden = true;
+    if (menuPad.releaseGate) {
+      if (!pad || (!buttonsDown && !axesDown)) menuPad.releaseGate = false;
+      else {
+        hint.hidden = false;
+        hint.textContent =
+          "Release the sticks and buttons to take control of the boat.";
+        return true;
+      }
+    }
+    const instruments = document.querySelector("aside");
+    if (instruments && Math.abs(axis(3)) > 0.25)
+      instruments.scrollTop += axis(3) * 500 * dt;
+    return false;
+  }
+  const items = menuItems(root);
+  const active = buttonsDown || axesDown;
+  if (active) menuPad.engaged = true;
+  hint.hidden = !pad;
+  hint.textContent =
+    "D-pad / L stick: move · A: select · B: back · R stick: scroll · LB/RB: page · Menu: resume";
+  document.getElementById("menuLogBtn").disabled = !game;
+  document.getElementById("controllerStatus").textContent = pad
+    ? "Controller connected. A selects; left/right changes resistance. X opens log; Y opens field guide."
+    : "Xbox controller: press a button to connect. D-pad moves; A selects; B goes back.";
+  if (!pad || !menuPad.engaged) return false;
+  if (root.id !== menuPad.screen) {
+    menuPad.screen = root.id;
+    const sheet = root.querySelector(".card");
+    if (sheet) sheet.scrollTop = 0;
+    menuPad.token = null;
+    menuPad.crewReturn = null;
+    menuPad.direction = null;
+    const preferred =
+      root.id === "splash"
+        ? game
+          ? "resumeBtn"
+          : "newPatrolBtn"
+        : root.id === "death"
+          ? "nextPatrolBtn"
+          : null;
+    const index = items.findIndex((e) => e.id === preferred);
+    focusMenuItem(items, index >= 0 ? index : 0);
+  } else {
+    let index = items.findIndex((e) => menuToken(e) === menuPad.token);
+    if (index < 0) index = Math.min(menuPad.index, items.length - 1);
+    menuPad.index = index;
+    if (items[index] && document.activeElement !== items[index])
+      focusMenuItem(items, index, false);
+  }
+  if (edgePad(1)) {
+    controllerBack(root);
+    return true;
+  }
+  if (edgePad(9)) {
+    if (root.id === "helpOverlay") closeFieldGuide();
+    else if (root.id === "logOverlay") toggleLog();
+    else if (game?.phase === "patrol" && !game.over) closeSplash();
+    else controllerBack(root);
+    return true;
+  }
+  if (
+    edgePad(2) &&
+    root.id !== "logOverlay" &&
+    root.id !== "helpOverlay" &&
+    game
+  ) {
+    toggleLog();
+    return true;
+  }
+  if (edgePad(3) && root.id !== "helpOverlay") {
+    showFieldGuide();
+    return true;
+  }
+  const direction = menuDirection();
+  if (
+    direction &&
+    (direction !== menuPad.direction || now >= menuPad.repeatAt)
+  ) {
+    const el = items[menuPad.index];
+    if (el?.tagName === "SELECT" && ["left", "right"].includes(direction))
+      changeMenuOption(el, direction === "left" ? -1 : 1);
+    else
+      focusMenuItem(
+        items,
+        menuPad.index + (["up", "left"].includes(direction) ? -1 : 1),
+      );
+    menuPad.repeatAt = now + (direction !== menuPad.direction ? 350 : 160);
+  }
+  menuPad.direction = direction;
+  const scroller =
+    root.id === "logOverlay"
+      ? document.getElementById("logEntries")
+      : root.id === "helpOverlay"
+        ? document.getElementById("fieldGuideText")
+        : root.querySelector(".card");
+  if (scroller) {
+    if (Math.abs(axis(3)) > 0.25) scroller.scrollTop += axis(3) * 650 * dt;
+    if (edgePad(4) || edgePad(5)) {
+      const delta = edgePad(4) ? -1 : 1;
+      // Move focus too, so page navigation never leaves the selection off screen.
+      focusMenuItem(items, menuPad.index + delta * 5);
+      if (root.id === "logOverlay" || root.id === "helpOverlay")
+        scroller.scrollTop += delta * scroller.clientHeight * 0.8;
+    }
+  }
+  if (edgePad(0)) {
+    const target = items[menuPad.index];
+    if (target?.tagName === "SELECT") changeMenuOption(target, 1);
+    else if (target) {
+      const crew = target.classList.contains("pierSailor");
+      const id = target.id;
+      target.click();
+      if (crew) {
+        menuPad.crewReturn = id;
+        const updated = menuItems(root),
+          index = updated.findIndex((e) => e.id === "assignCrewBtn");
+        if (index >= 0) focusMenuItem(updated, index);
+      }
+    }
+  }
+  return !!buttonsDown || !!axesDown || root.id === "helpOverlay";
+}
+function tubePanel() {
+  const s = game.sub;
+  const bank = (name, count, capacity, start) =>
+    `<div class="tubeBank"><span>${name}</span><div>${Array.from({ length: capacity }, (_, i) => `<span class="tubeLamp ${i < count ? "ready" : s.torpReloading ? "loading" : "empty"}" title="Tube ${start + i}: ${i < count ? "loaded" : s.torpReloading ? "reload in progress" : "empty"}"><i></i>${start + i}</span>`).join("")}</div></div>`;
+  return `<div class="tubePanel" aria-label="Torpedo banks: ${s.fwdTubes} forward loaded, ${s.aftTubes} aft loaded. Lamps represent bank counts, not individually selectable tubes.">${bank("FORWARD", s.fwdTubes, 6, 1)}${bank("AFT", s.aftTubes, 4, 7)}</div>`;
+}
+function initInterface() {
+  document.getElementById("menuLogBtn").addEventListener("click", () => {
+    if (game) toggleLog();
+  });
+  document
+    .getElementById("menuHelpBtn")
+    .addEventListener("click", showFieldGuide);
+  document
+    .getElementById("closeHelpBtn")
+    .addEventListener("click", closeFieldGuide);
+  // A file chooser belongs to the browser/OS, beyond the in-game focus adapter.
+  document.getElementById("importBtn").addEventListener("click", () => {
+    document.getElementById("transferStatus").textContent =
+      "Select a JSON save in your browser’s file picker. That external dialog may require a mouse or keyboard.";
+  });
+  document.addEventListener("keydown", (e) => {
+    menuPad.engaged = false;
+    if (
+      e.code === "Escape" &&
+      document.getElementById("helpOverlay").style.display === "flex"
+    ) {
+      closeFieldGuide();
+      e.stopImmediatePropagation();
+      e.preventDefault();
+    }
+  });
+  document.addEventListener("pointerdown", () => {
+    menuPad.engaged = false;
+    menuPad.screen = null;
+    menuPad.token = null;
+    document
+      .querySelectorAll(".padFocus")
+      .forEach((e) => e.classList.remove("padFocus"));
+  });
+}
+
+</script>
+    <script>
+"use strict";
+// Static definitions are authoritative. Saves store crew IDs and mission state only.
+const HOT_RUNNERS = [
+  {
+    id: "captain",
+    name: "Jack “Shortcut” Harlow",
+    role: "Captain",
+    color: "#d8c69d",
+    perk: "Enemy contact fades 10% faster.",
+    drawback: "Deck gun reload takes 10% longer.",
+    quote: "We’re going home. The scenic route is optional.",
+  },
+  {
+    id: "engineer",
+    name: "Eddie “Rattle” Briggs",
+    role: "Engineer",
+    color: "#b28a53",
+    perk: "Battery endurance +10%.",
+    drawback: "Movement noise +5%.",
+    quote: "She’ll hold. Stop asking what that sound was.",
+  },
+  {
+    id: "chief",
+    name: "Frank “Pops” Malloy",
+    role: "Chief of the Boat",
+    color: "#718779",
+    perk: "Emergency repair +5 hull. Provides one 20-hull repair if untrained.",
+    drawback: "Repair takes 12 seconds instead of 10.",
+    quote: "You run the boat, Captain. I’ll run the circus.",
+  },
+  {
+    id: "torpedoman",
+    name: "Lou “Spare Parts” Russo",
+    role: "Torpedoman",
+    color: "#9b7770",
+    perk: "Torpedo reload time −10%.",
+    drawback: "Two fewer reserve torpedoes.",
+    quote: "I packed them carefully. You aim them carefully.",
+  },
+  {
+    id: "sonarman",
+    name: "Art “Whispers” Bell",
+    role: "Sonarman",
+    color: "#688c9b",
+    perk: "Active sonar fixes last 15% longer.",
+    drawback:
+      "Active pings alert escorts from 10% farther away when sonar alerts are enabled.",
+    quote: "Quiet down. The ocean’s talking.",
+  },
+];
+const HARBOR_MISSION = {
+  id: 6,
+  name: "Blackwater Harbor",
+  kind: "harbor",
+  brief:
+    "0230 hours. Approach at periscope depth. Sink BOTH moored cargo ships, surface and shell the shore fuel tank, then escape through the southern circle. Break pursuit and remain in the exit for 15 seconds.",
+  bonus:
+    "One upgrade point on your first successful raid. Repeat raids earn score only. No aircraft; one harbor patrol and at most two alarm reinforcements.",
+  bonusLabel: null,
+};
+// Top-down chart geometry. The broad southern opening leaves room to evade.
+const HARBOR_LAND = [
+  { x: 0, y: 0, w: 1600, h: 170 },
+  { x: 0, y: 170, w: 450, h: 480 },
+  { x: 1150, y: 170, w: 450, h: 480 },
+  { x: 550, y: 170, w: 28, h: 155 },
+  { x: 800, y: 170, w: 28, h: 155 },
+  { x: 1050, y: 170, w: 28, h: 155 },
+];
+const HARBOR_FUEL = { x: 940, y: 108, r: 39 };
+let inspectedCrew = "captain";
+function normalizeCrew(ids) {
+  return Array.isArray(ids)
+    ? [
+        ...new Set(ids.filter((id) => HOT_RUNNERS.some((c) => c.id === id))),
+      ].slice(0, 3)
+    : [];
+}
+function crewHas(id, g = game) {
+  return !!g?.campaign?.crew?.includes(id);
+}
+function toggleCrew(id) {
+  if (game?.phase !== "port") return false;
+  const c = HOT_RUNNERS.find((c) => c.id === id);
+  if (!c) return false;
+  const crew = game.campaign.crew;
+  const assigned = crew.includes(id);
+  if (!assigned && crew.length >= 3) {
+    document.getElementById("crewQuote").textContent =
+      "Three Hot Runners already assigned. Stand one down before adding another.";
+    return false;
+  }
+  game.campaign.crew = assigned ? crew.filter((x) => x !== id) : [...crew, id];
+  renderCrewPort();
+  document.getElementById("crewQuote").textContent = assigned
+    ? `${c.name} is back on the pier.`
+    : `“${c.quote}” — ${c.name}`;
+  recordEvent(
+    `${c.role} ${assigned ? "stood down" : "assigned"}: ${c.name}`,
+    "crew",
+  );
+  checkpoint();
+  return true;
+}
+function sailorSVG(c) {
+  return `<svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="34" cy="40" rx="20" ry="15" fill="#0005"/><g class="sailorBody"><path d="M24 42v12h7V42m4 0v12h7V42" stroke="#14232a" stroke-width="5"/><ellipse cx="32" cy="34" rx="16" ry="13" fill="${c.color}" stroke="#253236" stroke-width="2"/><path d="M17 31l-4 12m34-12l4 12" stroke="${c.color}" stroke-width="7"/><circle cx="32" cy="25" r="10" fill="#c39c75"/><ellipse cx="32" cy="21" rx="12" ry="9" fill="${c.id === "captain" || c.id === "chief" ? "#e4ddc5" : "#d3c6a8"}" stroke="#454a45" stroke-width="2"/><path d="M23 27q9 6 18 0" stroke="#333e3d" stroke-width="4"/>${c.id === "engineer" ? '<path d="M48 35v18m-4-17l4 4 4-4" stroke="#afb9b7" stroke-width="3"/>' : c.id === "sonarman" ? '<path d="M20 24q12-19 24 0" fill="none" stroke="#1b2e35" stroke-width="4"/>' : ""}</g></svg>`;
+}
+function drawPierArt() {
+  const svg = document.getElementById("pierArt");
+  svg.innerHTML = `<defs><pattern id="planks" width="24" height="26" patternUnits="userSpaceOnUse"><rect width="24" height="26" fill="#645943"/><path d="M0 25h24M2 0v26" stroke="#352f28"/><path d="M5 7h14M9 18h10" stroke="#817158" stroke-opacity=".4"/></pattern><pattern id="waterLines" width="110" height="40" patternUnits="userSpaceOnUse"><path d="M10 20q20-5 42 0m25 10h15" fill="none" stroke="#73938f" stroke-opacity=".18"/></pattern></defs><rect width="1000" height="360" fill="#142d34"/><rect width="1000" height="360" fill="url(#waterLines)"/><rect x="0" y="0" width="1000" height="160" fill="url(#planks)"/><path d="M0 160h1000" stroke="#b4a482" stroke-width="7"/><path d="M0 167h1000" stroke="#060f14" stroke-width="8"/><text x="32" y="32" fill="#c9baa0" font-family="monospace" font-size="14">PIER 07 / NIGHT WATCH / 0230</text><g fill="#948060" stroke="#403b30" stroke-width="3"><rect x="22" y="56" width="48" height="38"/><path d="M22 56l48 38m0-38L22 94"/><rect x="914" y="87" width="54" height="51"/></g><g fill="#ccb079"><circle cx="90" cy="152" r="6"/><circle cx="880" cy="152" r="6"/></g><path d="M260 174L280 218m460-44l-35 43" stroke="#998e74" stroke-width="3"/><ellipse cx="507" cy="274" rx="342" ry="42" fill="#020e1480"/><path d="M170 245q26-35 120-36h393q93 1 148 37-43 37-148 37H290q-86-1-120-38Z" fill="#4c5c5b" stroke="#89938a" stroke-width="3"/><path d="M216 245h555" stroke="#a2a58e" stroke-width="2"/><path d="M280 218h402v54H280Z" fill="#5f6e67"/><g fill="#303f40" stroke="#8d988a" stroke-width="2"><ellipse cx="355" cy="245" rx="21" ry="14"/><ellipse cx="665" cy="245" rx="21" ry="14"/><rect x="458" y="226" width="93" height="37" rx="14"/></g><path d="M503 232v26m-12-15h24" stroke="#bec1a7" stroke-width="3"/><path d="M592 241h40m-31-8v17" stroke="#afb3a0" stroke-width="5"/><rect x="490" y="149" width="25" height="72" fill="#918468" stroke="#2f3937" stroke-width="3"/><path d="M493 155h19m-19 12h19m-19 12h19m-19 12h19m-19 12h19" stroke="#554c3d" stroke-width="2"/><text x="505" y="326" text-anchor="middle" fill="#b9c5b3" font-family="monospace" font-size="13">GATO CLASS · CREW MUSTER</text>`;
+}
+function renderCrewPort() {
+  if (!game) return;
+  const crew = game.campaign.crew;
+  document.getElementById("crewCount").textContent =
+    `${crew.length} / 3 assigned`;
+  const container = document.getElementById("crewSailors");
+  container.innerHTML = "";
+  HOT_RUNNERS.forEach((c, i) => {
+    const b = document.createElement("button");
+    b.className = `pierSailor ${crew.includes(c.id) ? "aboard" : ""} ${inspectedCrew === c.id ? "inspected" : ""}`;
+    b.id = `sailor-${c.id}`;
+    b.style.left = `${crew.includes(c.id) ? 32 + crew.indexOf(c.id) * 17 : 17 + i * 16}%`;
+    b.style.top = crew.includes(c.id) ? "57%" : "17%";
+    b.setAttribute(
+      "aria-label",
+      `${c.role}: ${c.name}${crew.includes(c.id) ? ", assigned" : ", on pier"}`,
+    );
+    b.setAttribute("aria-pressed", String(inspectedCrew === c.id));
+    b.innerHTML = `${sailorSVG(c)}<span>${c.role}${crew.includes(c.id) ? " ✓" : ""}</span>`;
+    b.addEventListener("click", () => {
+      inspectedCrew = c.id;
+      renderCrewPort();
+    });
+    container.appendChild(b);
+  });
+  const c = HOT_RUNNERS.find((c) => c.id === inspectedCrew) || HOT_RUNNERS[0];
+  const record = document.getElementById("crewRecord");
+  record.innerHTML = `<div><span class="personnelStamp">PERSONNEL RECORD / ${c.role.toUpperCase()}</span><h3>${c.name}</h3><p class="crewPerk">+ ${c.perk}</p><p class="crewDrawback">− ${c.drawback}</p></div>`;
+  const assign = document.createElement("button");
+  assign.id = "assignCrewBtn";
+  assign.textContent = crew.includes(c.id)
+    ? "Stand down"
+    : crew.length >= 3
+      ? "Loadout full · stand someone down"
+      : "Assign to boat";
+  assign.disabled = !crew.includes(c.id) && crew.length >= 3;
+  assign.addEventListener("click", () => {
+    const joining = !crewHas(c.id);
+    if (toggleCrew(c.id) && joining) {
+      const b = document.getElementById(`sailor-${c.id}`);
+      // Walk to the gangway and along the deck, rather than teleporting.
+      b?.animate?.(
+        [
+          { left: `${17 + HOT_RUNNERS.indexOf(c) * 16}%`, top: "17%" },
+          { left: "48%", top: "24%", offset: 0.35 },
+          { left: "48%", top: "57%", offset: 0.7 },
+          { left: b.style.left, top: "57%" },
+        ],
+        { duration: 1800, easing: "linear" },
+      );
+    }
+  });
+  record.appendChild(assign);
+  document.getElementById("crewManifest").textContent = crew.length
+    ? "Aboard: " +
+      HOT_RUNNERS.filter((c) => crew.includes(c.id))
+        .map((c) => c.role)
+        .join(" · ") +
+      ". Perks apply on departure."
+    : "Standard crew aboard. No Hot Runner bonuses or drawbacks.";
+  for (const mode of ["campaign", "harbor"]) {
+    const b = document.getElementById(mode + "SortieBtn");
+    b.setAttribute(
+      "aria-pressed",
+      String((game.plannedSortie || "campaign") === mode),
+    );
+    b.className = (game.plannedSortie || "campaign") === mode ? "primary" : "";
+  }
+}
+function initCrewUI() {
+  drawPierArt();
+  for (const mode of ["campaign", "harbor"])
+    document
+      .getElementById(mode + "SortieBtn")
+      .addEventListener("click", () => {
+        if (game?.phase !== "port") return;
+        game.plannedSortie = mode;
+        renderPort();
+        checkpoint();
+      });
+}
+function crewHud() {
+  const crew = HOT_RUNNERS.filter((c) => crewHas(c.id));
+  return `<section><span class="label">Hot Runners · ${crew.length}/3</span>${crew.length ? crew.map((c) => `<div class="small" title="${c.perk} ${c.drawback}">${c.role} · ${c.name.split("“")[1].split("”")[0]}</div>`).join("") : '<div class="small muted">Standard crew</div>'}</section>`;
+}
+function initHarbor(g) {
+  g.mission = freshMission(6);
+  g.harbor = {
+    fuelHP: 112,
+    sunk: [],
+    targets: [],
+    alarmAt: null,
+    reinforcements: 0,
+    alarmSource: null,
+  };
+  g.weather = weatherFor(2);
+  g.approach = "balanced";
+  g.sub.x = 800;
+  g.sub.y = 710;
+  g.sub.depth = 12;
+  g.sub.targetDepth = 12;
+  g.encounter = 1;
+  g.encounterName = "Blackwater Harbor · moored shipping";
+  for (const [x, type] of [
+    [670, "merchant"],
+    [930, "transport"],
+  ]) {
+    const sh = makeShip(x, 355, 0, type, 0);
+    sh.moored = true;
+    g.ships.push(sh);
+    g.harbor.targets.push(sh.id);
+  }
+  const patrol = makeShip(560, 500, 0, "escort", 17);
+  patrol.patrolPoint = 0;
+  g.ships.push(patrol);
+  recordEvent(
+    "0230: Blackwater Harbor. Periscope-depth approach; two moored ships and shore fuel tank designated.",
+    "orders",
+  );
+}
+function raiseHarborAlarm(source) {
+  const h = game.harbor;
+  if (!h || h.alarmAt !== null) return;
+  h.alarmAt = game.time;
+  h.alarmSource =
+    source && Number.isFinite(source.x) && Number.isFinite(source.y)
+      ? { x: source.x, y: source.y }
+      : null;
+  announce("HARBOR ALARM — reinforcements inbound in 18 seconds", 5);
+  recordEvent(
+    "Harbor alarm raised. Two reinforcement patrols dispatched.",
+    "enemy",
+  );
+}
+function updateHarbor() {
+  const h = game.harbor;
+  if (!h) return;
+  const gun = game.signals.find((s) => s.type === "gun");
+  const spotter = game.ships.find(
+    (s) => s.alive && s.escort && s.contact > 0.6,
+  );
+  if (gun || spotter) raiseHarborAlarm(gun || spotter.lastKnown);
+  if (
+    h.alarmAt !== null &&
+    h.reinforcements < 2 &&
+    game.time - h.alarmAt >= 18 + h.reinforcements * 20
+  ) {
+    const sh = makeShip(
+      800 + (h.reinforcements ? 220 : -220),
+      780,
+      -Math.PI / 2,
+      "escort",
+      22,
+    );
+    sh.patrolPoint = 0;
+    if (h.alarmSource) {
+      sh.lastKnown = { ...h.alarmSource };
+      sh.state = "investigate";
+      sh.searchT = 24;
+    }
+    game.ships.push(sh);
+    h.reinforcements++;
+    announce(
+      `HARBOR REINFORCEMENT ${h.reinforcements}/2 — arriving from the south`,
+      4,
+    );
+    recordEvent(`Harbor reinforcement ${h.reinforcements}/2 arrived.`, "enemy");
+  }
+}
+function harborPatrol(sh) {
+  if (!game.harbor || sh.state !== "patrol") return;
+  const points = [
+    { x: 1040, y: 490 },
+    { x: 1040, y: 730 },
+    { x: 550, y: 730 },
+    { x: 550, y: 490 },
+  ];
+  sh.patrolPoint = Number.isInteger(sh.patrolPoint) ? sh.patrolPoint % 4 : 0;
+  if (dist(sh, points[sh.patrolPoint]) < 60)
+    sh.patrolPoint = (sh.patrolPoint + 1) % 4;
+  const p = points[sh.patrolPoint];
+  sh.routeA = Math.atan2(p.y - sh.y, p.x - sh.x);
+}
+function harborBlocked(x, y, r = 0) {
+  return HARBOR_LAND.some(
+    (b) => x > b.x - r && x < b.x + b.w + r && y > b.y - r && y < b.y + b.h + r,
+  );
+}
+function harborCollision(entity, previous, radius) {
+  if (!game.harbor || !harborBlocked(entity.x, entity.y, radius)) return;
+  entity.x = previous.x;
+  entity.y = previous.y;
+  entity.speed = 0;
+  if (entity === game.sub) {
+    if (!game.harbor.bumpAt || game.time - game.harbor.bumpAt > 3) {
+      announce("SHOAL / PIER — turn away from the charted shoreline", 2);
+      game.harbor.bumpAt = game.time;
+    }
+  } else {
+    entity.a = norm(entity.a + Math.PI / 2);
+    entity.attack = null;
+    entity.patrolPoint = ((entity.patrolPoint || 0) + 1) % 4;
+  }
+}
+function harborProjectile(b, x0, y0, torpedo) {
+  const h = game.harbor;
+  if (!h) return false;
+  // Substeps keep normal travel below 13 units. Sampling also protects restored fast projectiles.
+  if (torpedo) {
+    const steps = Math.max(1, Math.ceil(Math.hypot(b.x - x0, b.y - y0) / 8));
+    for (let i = 0; i <= steps; i++)
+      if (
+        harborBlocked(
+          x0 + ((b.x - x0) * i) / steps,
+          y0 + ((b.y - y0) * i) / steps,
+        )
+      ) {
+        b.life = 0;
+        effect(b.x, b.y, "hit", 0.4);
+        return true;
+      }
+  } else if (
+    h.fuelHP > 0 &&
+    segmentDistance(x0, y0, b.x, b.y, HARBOR_FUEL.x, HARBOR_FUEL.y) <
+      HARBOR_FUEL.r
+  ) {
+    const damage = b.damage * GUNS[b.weapon].hull;
+    h.fuelHP = Math.max(0, h.fuelHP - damage);
+    b.life = 0;
+    game.stats.hits++;
+    raiseHarborAlarm(Number.isFinite(b.ox) ? { x: b.ox, y: b.oy } : null);
+    effect(
+      HARBOR_FUEL.x,
+      HARBOR_FUEL.y,
+      h.fuelHP === 0 ? "sink" : "hit",
+      h.fuelHP === 0 ? 3 : 0.5,
+    );
+    if (h.fuelHP === 0) {
+      game.score += 600;
+      announce(
+        "SHORE FUEL DESTROYED — check remaining ships, then withdraw",
+        5,
+      );
+      recordEvent("Shore fuel tank destroyed.", "objective");
+    }
+    return true;
+  }
+  return false;
+}
+function normalizeHarbor(g) {
+  g.plannedSortie = g.plannedSortie === "harbor" ? "harbor" : "campaign";
+  if (g.mission.id !== 6) {
+    g.harbor = null;
+    return;
+  }
+  const h = g.harbor;
+  if (
+    !h ||
+    !Number.isFinite(h.fuelHP) ||
+    h.fuelHP < 0 ||
+    h.fuelHP > 112 ||
+    !Array.isArray(h.targets) ||
+    h.targets.length !== 2 ||
+    h.targets.some((id) => !Number.isInteger(id)) ||
+    new Set(h.targets).size !== 2 ||
+    !Array.isArray(h.sunk) ||
+    new Set(h.sunk).size !== h.sunk.length ||
+    h.sunk.some((id) => !h.targets.includes(id)) ||
+    !Number.isInteger(h.reinforcements) ||
+    h.reinforcements < 0 ||
+    h.reinforcements > 2 ||
+    (h.alarmAt !== null &&
+      (!Number.isFinite(h.alarmAt) || h.alarmAt < 0 || h.alarmAt > g.time))
+  )
+    throw Error("Invalid harbor mission state.");
+  if (
+    h.alarmSource &&
+    (!Number.isFinite(h.alarmSource.x) || !Number.isFinite(h.alarmSource.y))
+  )
+    throw Error("Invalid harbor alarm position.");
+  for (const id of h.targets)
+    if (
+      !h.sunk.includes(id) &&
+      !g.ships.some(
+        (s) =>
+          s.id === id &&
+          s.alive &&
+          s.moored &&
+          !s.escort &&
+          s.convoySpeed === 0,
+      )
+    )
+      throw Error("Missing moored mission target.");
+  g.weather = weatherFor(2);
+  g.approach = "balanced";
+}
+function harborHud() {
+  if (!game.harbor) return "";
+  const h = game.harbor;
+  return `<section><span class="label">Harbor watch</span><div class="small ${h.alarmAt === null ? "green" : "yellow"}">${h.alarmAt === null ? "QUIET · harbor asleep" : `ALARM · ${h.reinforcements}/2 reinforcements arrived`}</div><p class="small">Torpedo the two moored ships. Surface for the fuel tank: 4 deck-gun hits. Escape south.</p></section>`;
+}
+function drawHarbor() {
+  if (!game.harbor) return;
+  const h = game.harbor;
+  ctx.save();
+  for (const b of HARBOR_LAND) {
+    ctx.fillStyle = "#3a443e";
+    ctx.fillRect(b.x, b.y, b.w, b.h);
+    ctx.strokeStyle = "#b2a078";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(b.x, b.y, b.w, b.h);
+  }
+  // Warehouses, roof seams, crates and quay lamps, all viewed from directly above.
+  for (const [x, y, w, ht] of [
+    [95, 62, 200, 75],
+    [65, 260, 170, 100],
+    [240, 410, 120, 145],
+    [1240, 255, 245, 110],
+    [1260, 475, 160, 90],
+    [1110, 55, 250, 70],
+  ]) {
+    ctx.fillStyle = "#202d2d";
+    ctx.fillRect(x + 7, y + 9, w, ht);
+    ctx.fillStyle = "#58615a";
+    ctx.fillRect(x, y, w, ht);
+    ctx.strokeStyle = "#859080";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, w, ht);
+    ctx.beginPath();
+    ctx.moveTo(x, y + ht / 2);
+    ctx.lineTo(x + w, y + ht / 2);
+    ctx.stroke();
+  }
+  for (const x of [500, 750, 1000, 1100]) {
+    circle(x, 180, 13, "#eed19322", 8);
+    circle(x, 180, 3, "#ffe4a6", 4);
+  }
+  ctx.fillStyle = h.fuelHP > 0 ? "#a4a493" : "#282c2a";
+  ctx.beginPath();
+  ctx.arc(HARBOR_FUEL.x, HARBOR_FUEL.y, 39, 0, Math.PI * 2);
+  ctx.fill();
+  circle(940, 108, 31, h.fuelHP > 0 ? "#d7ccb0" : "#805847", 3);
+  circle(940, 108, 8, "#565c55", 4);
+  label(
+    h.fuelHP > 0 ? "FUEL TANK · DECK GUN" : "FUEL DESTROYED",
+    940,
+    48,
+    h.fuelHP > 0 ? "#f2d08d" : "#d8a080",
+    14,
+  );
+  if (h.fuelHP > 0) {
+    ctx.fillStyle = "#282c2a";
+    ctx.fillRect(898, 154, 84, 6);
+    ctx.fillStyle = "#e0b977";
+    ctx.fillRect(898, 154, (84 * h.fuelHP) / 112, 6);
+  } else {
+    for (let i = 0; i < 7; i++) {
+      const x = 940 + Math.sin(game.time * 2 + i * 2) * 27,
+        y = 110 - i * 7;
+      circle(x, y, 10 + i, "#d37b3433", 7);
+    }
+  }
+  for (const [i, x] of [670, 930].entries()) {
+    const destroyed = h.sunk.includes(h.targets[i]);
+    ctx.save();
+    ctx.setLineDash([5, 6]);
+    circle(x, 355, 48, destroyed ? "#8dad8877" : "#d2b36f66", 1);
+    ctx.restore();
+    label(
+      destroyed ? "BERTH CLEARED" : `BERTH ${i + 1} · MOORED TARGET`,
+      x,
+      420,
+      destroyed ? "#95b394" : "#ddc792",
+      12,
+    );
+  }
+  label("CHARTED HARBOR · 0230 HOURS", 650, 70, "#cbbf9c", 14);
+  label("HARBOR ENTRANCE", 800, 661, "#a9bcb7", 13);
+  label(
+    h.alarmAt === null
+      ? "DARKENED PORT"
+      : `ALARM · REINFORCEMENTS ${h.reinforcements}/2`,
+    245,
+    215,
+    h.alarmAt === null ? "#b6c0ac" : "#edb584",
+    15,
+  );
+  ctx.restore();
+}
+
+</script>
+    <script>
+"use strict";
+// Tactical systems use the shared game state in game.js. Both scripts also bundle
+// into the downloadable single-file build; no network services are used by play.
+const SPREADS = [
+  { name: "Single", count: 1, angle: 0 },
+  { name: "Narrow ×3", count: 3, angle: 0.024 },
+  { name: "Wide ×3", count: 3, angle: 0.065 },
+];
+const APPROACHES = [
+  {
+    id: "cautious",
+    name: "Southern approach",
+    x: 1100,
+    y: 800,
+    escorts: -1,
+    reward: 1,
+    description:
+      "Longer transit. One fewer escort, minimum one. Standard sinking rewards.",
+  },
+  {
+    id: "balanced",
+    name: "Central intercept",
+    x: 800,
+    y: 700,
+    escorts: 0,
+    reward: 1,
+    description:
+      "Standard opposition and rewards. Intercept the shipping lane from the south.",
+  },
+  {
+    id: "aggressive",
+    name: "Close interception",
+    x: 420,
+    y: 580,
+    escorts: 1,
+    reward: 1.2,
+    description:
+      "Closer starting position, one additional escort. +20% sinking points; upgrade-point awards are unchanged.",
+  },
+];
+function approachDef(id) {
+  return APPROACHES.find((a) => a.id === id) || APPROACHES[1];
+}
+function weatherFor(patrol) {
+  const night = patrol === 2 || patrol === 4,
+    rough = patrol === 3 || patrol === 5;
+  return {
+    night,
+    rough,
+    visual: night ? 0.67 : 1,
+    gunSpread: rough ? 1.7 : 1,
+    airFactor: rough ? 0.72 : 1,
+    label: `${night ? "Night" : "Day"} · ${rough ? "rough seas" : "calm seas"}`,
+  };
+}
+function initTactics(g) {
+  g.weather = weatherFor(g.campaign.patrol);
+  g.approach = approachDef(g.campaign.approach).id;
+  g.plannedApproach = g.approach;
+  const a = approachDef(g.approach);
+  g.sub.x = a.x;
+  g.sub.y = a.y;
+  g.sub.spread = 0;
+  g.sub.silent = false;
+  g.sub.decoyCount = 2;
+  g.sub.decoyCD = 0;
+  g.decoys = [];
+  g.targeting = {
+    id: null,
+    quality: 0,
+    estimate: null,
+    lastSample: null,
+    lastCourse: null,
+  };
+  g.timeScale = 1;
+  g.log = [];
+  g.logOpen = false;
+  g.pendingDamage = 0;
+  g.lastDamageLog = 0;
+  g.lastGunLog = -10;
+}
+function normalizeTactics(g) {
+  const s = g.sub;
+  g.weather = weatherFor(g.campaign.patrol);
+  g.approach = approachDef(g.approach || g.campaign.approach).id;
+  g.plannedApproach = approachDef(g.plannedApproach || g.approach).id;
+  s.spread = clamp(Math.floor(s.spread || 0), 0, 2);
+  s.silent = !!s.silent;
+  s.decoyCount = clamp(Math.floor(s.decoyCount ?? 2), 0, 2);
+  s.decoyCD = Math.max(0, s.decoyCD || 0);
+  g.decoys = Array.isArray(g.decoys) ? g.decoys : [];
+  g.targeting = {
+    id: null,
+    quality: 0,
+    estimate: null,
+    lastSample: null,
+    lastCourse: null,
+    ...g.targeting,
+  };
+  g.targeting.quality = clamp(g.targeting.quality || 0, 0, 1);
+  g.timeScale = 1;
+  g.log = Array.isArray(g.log) ? g.log.slice(-200) : [];
+  g.logOpen = false;
+  g.pendingDamage = 0;
+  g.lastDamageLog = g.time;
+  g.lastGunLog = g.time;
+  for (const mark of s.sonarMarks)
+    mark.observedAt ??= g.time - Math.max(0, 5 - mark.ttl);
+  for (const sh of g.ships) {
+    sh.convoyId ??= 0;
+    sh.role ??= "hunter";
+    sh.alertUntil ??= 0;
+  }
+}
+function recordEvent(text, kind = "event") {
+  if (!game?.log) return;
+  game.log.push({ t: game.time, kind, text: String(text).slice(0, 500) });
+  if (game.log.length > 200) game.log.splice(0, game.log.length - 200);
+}
+function escapeHTML(value) {
+  return String(value).replace(
+    /[&<>"']/g,
+    (ch) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        ch
+      ],
+  );
+}
+function cycleSpread() {
+  game.sub.spread = (game.sub.spread + 1) % SPREADS.length;
+  announce(`TORPEDO SPREAD — ${SPREADS[game.sub.spread].name}`, 2);
+}
+function toggleSilent() {
+  const s = game.sub;
+  if (s.depth < 3) {
+    announce("Submerge before engaging silent running");
+    return;
+  }
+  s.silent = !s.silent;
+  if (s.silent) s.speed = clamp(s.speed, -8, 12);
+  announce(
+    s.silent
+      ? "SILENT RUNNING — 12 u/s limit; reloads paused"
+      : "NORMAL OPERATIONS — reloads resumed",
+    3,
+  );
+}
+function deployDecoy() {
+  const s = game.sub;
+  if (s.depth < 3) {
+    announce("Decoys require a submerged launch");
+    return;
+  }
+  if (!s.decoyCount) {
+    announce("No decoys remaining");
+    return;
+  }
+  if (s.decoyCD > 0) {
+    announce("Decoy launcher cooling down");
+    return;
+  }
+  s.decoyCount--;
+  s.decoyCD = 12;
+  const d = {
+    id: Math.round(game.time * 1000) + s.decoyCount,
+    x: s.x - Math.cos(s.a) * 35,
+    y: s.y - Math.sin(s.a) * 35,
+    ttl: 20,
+  };
+  game.decoys.push(d);
+  for (const sh of game.ships) {
+    if (sh.alive && sh.escort && dist(sh, d) < 340 && dist(sh, s) > 130) {
+      sh.decoyId = d.id;
+      sh.attack = null;
+      sh.state = "decoy";
+      sh.lastKnown = { x: d.x, y: d.y };
+      sh.contact = Math.min(sh.contact, 0.35);
+    }
+  }
+  announce("DECOY AWAY — change course and separate from the noise", 4);
+  tone(420, 0.2, "triangle", 0.025, 100);
+}
+function updateDecoyEscort(sh, dt) {
+  if (sh.decoyId === undefined || sh.decoyId === null) return false;
+  const s = game.sub,
+    d = game.decoys.find((x) => x.id === sh.decoyId && x.ttl > 0);
+  if (!d || s.depth < 3 || dist(sh, s) < 130) {
+    sh.decoyId = null;
+    sh.state = "search";
+    sh.searchT = 14;
+    return false;
+  }
+  sh.contact = Math.max(0, sh.contact - dt * 0.1);
+  sh.lastKnown = { x: d.x, y: d.y };
+  sh.state = "decoy";
+  const angle = game.time * 0.3 + sh.id,
+    near = dist(sh, d) < 65;
+  turnToward(
+    sh,
+    d.x + (near ? Math.cos(angle) * 70 : 0),
+    d.y + (near ? Math.sin(angle) * 70 : 0),
+    0.7,
+    dt,
+  );
+  sh.speed = near ? 22 : 36;
+  sh.x += Math.cos(sh.a) * sh.speed * dt;
+  sh.y += Math.sin(sh.a) * sh.speed * dt;
+  sh.fire = Math.max(0, sh.fire - dt);
+  return true;
+}
+function visualRange() {
+  return (
+    (game.sub.depth < 3 ? 1000 : game.sub.depth < 18 ? 570 : 0) *
+    game.weather.visual
+  );
+}
+function observeShip(sh) {
+  if (!sh?.alive) return null;
+  if (dist(game.sub, sh) < visualRange())
+    return { x: sh.x, y: sh.y, t: game.time, visual: true };
+  const m = game.sub.sonarMarks.find((x) => x.shipId === sh.id && x.ttl > 0);
+  return m ? { x: m.x, y: m.y, t: m.observedAt ?? 0, visual: false } : null;
+}
+function selectTarget() {
+  const contacts = game.ships.filter((sh) => observeShip(sh));
+  if (!contacts.length) {
+    announce("No observed target — use visual contact or active sonar");
+    return;
+  }
+  contacts.sort(
+    (a, b) =>
+      Math.abs(
+        norm(Math.atan2(a.y - game.sub.y, a.x - game.sub.x) - currentAim()),
+      ) -
+      Math.abs(
+        norm(Math.atan2(b.y - game.sub.y, b.x - game.sub.x) - currentAim()),
+      ),
+  );
+  const previous = contacts.findIndex((x) => x.id === game.targeting.id),
+    sh = contacts[previous < 0 ? 0 : (previous + 1) % contacts.length];
+  game.targeting = {
+    id: sh.id,
+    quality: 0,
+    estimate: null,
+    lastSample: null,
+    lastCourse: null,
+  };
+  announce(
+    `TRACKING ${sh.type.toUpperCase()} — steady observation improves the solution`,
+    3,
+  );
+}
+function updateTargeting(dt) {
+  const t = game.targeting;
+  if (t.id === null) return;
+  const sh = game.ships.find((x) => x.id === t.id && x.alive);
+  if (!sh) {
+    t.id = null;
+    t.estimate = null;
+    t.quality = 0;
+    return;
+  }
+  const o = observeShip(sh);
+  if (o && (!t.lastSample || o.t > t.lastSample.t + 0.3)) {
+    if (t.lastSample) {
+      const elapsed = o.t - t.lastSample.t,
+        vx = (o.x - t.lastSample.x) / elapsed,
+        vy = (o.y - t.lastSample.y) / elapsed,
+        course = Math.atan2(vy, vx);
+      if (
+        t.lastCourse !== null &&
+        Math.hypot(vx, vy) > 2 &&
+        Math.abs(norm(course - t.lastCourse)) > 0.12
+      )
+        t.quality *= 0.5;
+      t.lastCourse = course;
+      t.estimate = { x: o.x, y: o.y, vx, vy };
+    } else t.estimate = { x: o.x, y: o.y, vx: 0, vy: 0 };
+    t.lastSample = { x: o.x, y: o.y, t: o.t };
+    if (!o.visual) t.quality = Math.min(0.8, t.quality + 0.15);
+  }
+  if (o?.visual) t.quality = Math.min(1, t.quality + dt * 0.075);
+  else t.quality = Math.max(0, t.quality - dt * 0.022);
+  if (t.estimate && t.lastSample) {
+    t.estimate.x =
+      t.lastSample.x + t.estimate.vx * (game.time - t.lastSample.t);
+    t.estimate.y =
+      t.lastSample.y + t.estimate.vy * (game.time - t.lastSample.t);
+  }
+}
+function interceptSolution(origin, estimate, speed = 220) {
+  if (!estimate) return null;
+  const rx = estimate.x - origin.x,
+    ry = estimate.y - origin.y,
+    a = estimate.vx ** 2 + estimate.vy ** 2 - speed ** 2,
+    b = 2 * (rx * estimate.vx + ry * estimate.vy),
+    c = rx ** 2 + ry ** 2;
+  let time;
+  if (Math.abs(a) < 1e-8) {
+    if (Math.abs(b) < 1e-8) return null;
+    time = -c / b;
+  } else {
+    const d = b * b - 4 * a * c;
+    if (d < 0) return null;
+    const roots = [
+      (-b - Math.sqrt(d)) / (2 * a),
+      (-b + Math.sqrt(d)) / (2 * a),
+    ].filter((t) => t > 0);
+    if (!roots.length) return null;
+    time = Math.min(...roots);
+  }
+  if (time <= 0 || time > 7) return null;
+  const x = estimate.x + estimate.vx * time,
+    y = estimate.y + estimate.vy * time;
+  return { x, y, time, a: Math.atan2(y - origin.y, x - origin.x) };
+}
+function alertConvoy(ship, source) {
+  if (!ship) return;
+  let fresh = false;
+  for (const sh of game.ships) {
+    if (!sh.alive || sh.convoyId !== ship.convoyId) continue;
+    fresh ||= sh.alertUntil <= game.time;
+    sh.alertUntil = Math.max(sh.alertUntil || 0, game.time + 45);
+    if (
+      sh.escort &&
+      sh.role !== "guard" &&
+      sh.contact < 0.5 &&
+      source &&
+      dist(sh, source) < 650
+    ) {
+      sh.state = "investigate";
+      sh.searchT = 22;
+      sh.lastKnown = { x: source.x + rnd(-70, 70), y: source.y + rnd(-70, 70) };
+    }
+  }
+  if (fresh)
+    recordEvent(
+      "Convoy alarm: merchants taking evasive action; escorts splitting duties.",
+      "enemy",
+    );
+}
+function merchantCourse(sh, dt) {
+  if ((sh.alertUntil || 0) > game.time) {
+    const desired =
+      sh.routeA +
+      Math.sin(game.time * 0.3 + sh.id * 1.9) * 0.36 +
+      (sh.id % 2 ? 0.08 : -0.08);
+    sh.a += clamp(norm(desired - sh.a), -0.28 * dt, 0.28 * dt);
+  } else sh.a += clamp(norm(sh.routeA - sh.a), -0.2 * dt, 0.2 * dt);
+}
+function convoyGuardPoint(sh) {
+  if (sh.role !== "guard" || sh.alertUntil <= game.time || sh.contact > 0.55)
+    return null;
+  const ships = game.ships.filter(
+    (x) => x.alive && !x.escort && x.convoyId === sh.convoyId,
+  );
+  if (!ships.length) return null;
+  return {
+    x: ships.reduce((n, x) => n + x.x, 0) / ships.length,
+    y: ships.reduce((n, x) => n + x.y, 0) / ships.length + 105,
+  };
+}
+function safeToAccelerate() {
+  if (!game || game.phase !== "patrol" || game.over || game.logOpen)
+    return false;
+  const s = game.sub;
+  if (
+    game.charges.length ||
+    game.shots.length ||
+    game.shells.length ||
+    game.enemyShells.length ||
+    s.repairT > 0 ||
+    game.extraction > 0 ||
+    dist(s, EXIT) < 130
+  )
+    return false;
+  if (
+    game.ships.some(
+      (sh) =>
+        sh.alive && (dist(s, sh) < 620 || (sh.escort && sh.state !== "patrol")),
+    )
+  )
+    return false;
+  if (game.plane && dist(game.plane, s) < 750) return false;
+  if (
+    game.mission.id === 3 &&
+    !game.mission.rescued &&
+    dist(s, { x: game.mission.rescueX, y: game.mission.rescueY }) < 150
+  )
+    return false;
+  if (
+    game.mission.id === 4 &&
+    !game.mission.targetSunk &&
+    game.mission.deadline - game.time < 30
+  )
+    return false;
+  return true;
+}
+function cycleTime() {
+  if (!safeToAccelerate()) {
+    game.timeScale = 1;
+    announce(
+      "TIME ×1 — compression requires clear water and no immediate mission activity",
+    );
+    return;
+  }
+  game.timeScale = game.timeScale === 1 ? 2 : game.timeScale === 2 ? 4 : 1;
+  announce(`TIME ×${game.timeScale}`, 2);
+}
+function toggleLog() {
+  if (!game) return;
+  game.logOpen = !game.logOpen;
+  game.timeScale = 1;
+  clearInput();
+  document.getElementById("logOverlay").style.display = game.logOpen
+    ? "flex"
+    : "none";
+  if (game.logOpen) renderLog();
+}
+function renderLog() {
+  const list = document.getElementById("logEntries");
+  list.innerHTML = "";
+  for (const entry of game.log.slice().reverse()) {
+    const p = document.createElement("p");
+    p.textContent = `${Math.floor(entry.t / 60)
+      .toString()
+      .padStart(2, "0")}:${Math.floor(entry.t % 60)
+      .toString()
+      .padStart(2, "0")} · ${entry.text}`;
+    list.appendChild(p);
+  }
+  if (!game.log.length) list.textContent = "No events recorded on this patrol.";
+}
+function updateTactics(dt, hullBefore) {
+  const s = game.sub;
+  s.decoyCD = Math.max(0, s.decoyCD - dt);
+  for (const d of game.decoys) d.ttl -= dt;
+  game.decoys = game.decoys.filter((d) => d.ttl > 0);
+  if (s.depth < 3) s.silent = false;
+  updateTargeting(dt);
+  if (game.timeScale > 1 && !safeToAccelerate()) {
+    game.timeScale = 1;
+    announce("THREAT OR OBJECTIVE NEARBY — time returned to ×1", 3);
+  }
+  for (const sig of game.signals) {
+    if (sig.type === "gun")
+      for (const sh of game.ships)
+        if (!sh.escort && sh.alive && dist(sh, sig) < 500) alertConvoy(sh, sig);
+  }
+  const damage = Math.max(0, hullBefore - s.hull);
+  game.pendingDamage += damage;
+  if (game.pendingDamage >= 1 && game.time - game.lastDamageLog >= 1) {
+    recordEvent(
+      `Hull damage: ${game.pendingDamage.toFixed(1)}. Hull remaining: ${Math.max(0, s.hull).toFixed(0)}%.`,
+      "damage",
+    );
+    game.pendingDamage = 0;
+    game.lastDamageLog = game.time;
+  }
+}
+function renderApproaches() {
+  if (!game) return;
+  document.getElementById("approachPanel").style.display =
+    game.plannedSortie === "harbor" ? "none" : "";
+  const p = game.portMission || game.campaign.patrol,
+    d = MISSIONS[p - 1],
+    w = weatherFor(p),
+    picked = approachDef(game.plannedApproach);
+  document.getElementById("conditions").textContent =
+    `Forecast: ${w.label}. ${w.night ? "Reduced visual range for both sides. " : ""}${w.rough ? "Wider gun dispersion; aircraft search and bomb damage reduced." : ""}`;
+  const box = document.getElementById("approachChoices");
+  box.innerHTML = "";
+  for (const a of APPROACHES) {
+    const button = document.createElement("button");
+    button.className = a.id === picked.id ? "primary" : "";
+    button.setAttribute("aria-pressed", String(a.id === picked.id));
+    button.innerHTML = `<b>${a.name}</b><span>${a.description}</span>`;
+    button.addEventListener("click", () => {
+      game.plannedApproach = a.id;
+      renderApproaches();
+      checkpoint();
+    });
+    box.appendChild(button);
+  }
+  const base = p === 1 || p === 3 ? 1 : p === 5 ? 3 : 2;
+  document.getElementById("contactEstimate").textContent =
+    `Contact estimate: ${d.kind === "rescue" ? "survivors and a local patrol" : p === 1 ? "2 merchants" : p === 5 ? "4 merchants including a tanker" : "mission target with accompanying merchants"} · approximately ${Math.max(1, base + picked.escorts)} escorts${p === 5 && config.heavyHunters ? " + heavy hunter" : ""}.`;
+  const marker = document.getElementById("approachMarker");
+  marker.setAttribute("cx", String(picked.x / 4));
+  marker.setAttribute("cy", String(picked.y / 4));
+}
+function tacticalHud() {
+  const s = game.sub,
+    t = game.targeting,
+    solution = interceptSolution(s, t.estimate);
+  return `<section><span class="label">Tactical station · ×${game.timeScale}</span><div class="row"><span>Spread</span><b>${SPREADS[s.spread].name}</b></div><div class="row"><span>Decoys</span><b>${s.decoyCount} / 2</b></div><div class="row"><span>Running</span><b>${s.silent ? "SILENT" : "NORMAL"}</b></div><div class="small ${t.quality > 0.7 ? "green" : "yellow"}">${t.id === null ? "G / R-stick click: track a target" : `Solution: ${Math.round(t.quality * 100)}%${solution ? " · lead diamond shown" : " · outside torpedo reach"}`}</div><div class="small muted">${game.weather.label}</div></section>`;
+}
+function drawTactics() {
+  for (const d of game.decoys) {
+    circle(d.x, d.y, 20 + Math.sin(game.time * 4) * 5, "#9bd1ebaa", 2);
+    label("DECOY", d.x, d.y - 30, "#a9e2fa", 11);
+  }
+  const t = game.targeting;
+  if (t.id !== null && t.estimate) {
+    const e = t.estimate,
+      sol = interceptSolution(game.sub, e);
+    circle(e.x, e.y, 26, "#e9efd88a", 1);
+    if (sol) {
+      ctx.save();
+      ctx.setLineDash([4, 6]);
+      circle(sol.x, sol.y, 12 + (1 - t.quality) * 55, "#8edbbc66", 1);
+      ctx.setLineDash([]);
+      ctx.translate(sol.x, sol.y);
+      ctx.rotate(Math.PI / 4);
+      ctx.strokeStyle = t.quality > 0.7 ? "#a9ffce" : "#edcf82";
+      ctx.strokeRect(-7, -7, 14, 14);
+      ctx.restore();
+      label(
+        `LEAD · ${Math.round(t.quality * 100)}%`,
+        sol.x,
+        sol.y - 28,
+        "#daf3bf",
+        12,
+      );
+    }
+  }
+  const sp = SPREADS[game.sub.spread];
+  if (sp.count > 1) {
+    ctx.save();
+    ctx.strokeStyle = "#e3ce8855";
+    ctx.setLineDash([3, 7]);
+    for (const off of [-sp.angle, sp.angle]) {
+      const a = currentAim() + off;
+      ctx.beginPath();
+      ctx.moveTo(game.sub.x, game.sub.y);
+      ctx.lineTo(
+        game.sub.x + Math.cos(a) * 260,
+        game.sub.y + Math.sin(a) * 260,
+      );
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+// Save import is data-only, bounded, validated, and applied only after validation.
+function validateSaveTree(value, depth = 0, budget = { n: 0 }) {
+  if (++budget.n > 40000 || depth > 18) throw Error("Save is too complex.");
+  if (typeof value === "number" && !Number.isFinite(value))
+    throw Error("Save contains non-finite numbers.");
+  if (typeof value === "string" && value.length > 4096)
+    throw Error("Save contains oversized text.");
+  if (Array.isArray(value) && value.length > 2000)
+    throw Error("Save contains too many objects.");
+  if (value && typeof value === "object")
+    for (const [key, v] of Object.entries(value)) {
+      if (["__proto__", "prototype", "constructor"].includes(key))
+        throw Error("Save contains an invalid key.");
+      validateSaveTree(v, depth + 1, budget);
+    }
+}
+function validateRestoredState(g) {
+  const numeric = (x, name) => {
+    if (typeof x !== "number" || !Number.isFinite(x))
+      throw Error("Invalid " + name);
+  };
+  for (const [key, val] of Object.entries(g.sub)) {
+    if (
+      [
+        "x",
+        "y",
+        "a",
+        "speed",
+        "depth",
+        "targetDepth",
+        "hull",
+        "battery",
+        "detected",
+        "sonarCD",
+        "sonarPulse",
+        "torpCD",
+        "torpReloadT",
+        "selectedGun",
+        "aimAngle",
+        "fwdTubes",
+        "aftTubes",
+        "torpReserve",
+        "deck",
+        "deckReserve",
+        "bofors",
+        "boforsReserve",
+        "oerlikon",
+        "oerlikonReserve",
+        "repairT",
+        "repairCharges",
+      ].includes(key)
+    )
+      numeric(val, "submarine " + key);
+  }
+  if (
+    !Number.isInteger(g.sub.selectedGun) ||
+    g.sub.selectedGun < 0 ||
+    g.sub.selectedGun > 2
+  )
+    throw Error("Invalid selected gun");
+  for (const key of [
+    "time",
+    "score",
+    "encounter",
+    "encounterAge",
+    "planeTimer",
+    "extraction",
+    "messageT",
+  ])
+    numeric(g[key], key);
+  if (
+    g.ships.length > 200 ||
+    g.shots.length + g.shells.length + g.enemyShells.length > 1000
+  )
+    throw Error("Save contains too many active combat objects.");
+  for (const entry of g.campaign.log) {
+    numeric(entry.patrol, "campaign log patrol");
+    numeric(entry.score, "campaign log score");
+    numeric(entry.tonnage, "campaign log tonnage");
+  }
+  for (const entry of g.log) {
+    numeric(entry.t, "log time");
+    if (typeof entry.text !== "string") throw Error("Invalid log text");
+  }
+  for (const mark of g.sub.sonarMarks) {
+    for (const key of ["x", "y", "ttl", "range"])
+      numeric(mark[key], "sonar mark " + key);
+  }
+  for (const m of g.sub.mounts) {
+    numeric(m.cd, "gun cooldown");
+    numeric(m.reload, "gun reload");
+  }
+  for (const list of [
+    "ships",
+    "shots",
+    "shells",
+    "enemyShells",
+    "charges",
+    "decoys",
+  ])
+    for (const item of g[list]) {
+      numeric(item.x, list + " position");
+      numeric(item.y, list + " position");
+      if (list === "ships") {
+        numeric(item.a, "ship heading");
+        numeric(item.hp, "ship hull");
+        numeric(item.maxhp, "ship max hull");
+        numeric(item.convoySpeed, "convoy speed");
+        if (
+          ![
+            "merchant",
+            "tanker",
+            "transport",
+            "coaster",
+            "escort",
+            "heavy",
+          ].includes(item.type)
+        )
+          throw Error("Invalid ship type");
+      }
+      if (["shots", "shells", "enemyShells"].includes(list)) {
+        numeric(item.a, "projectile heading");
+        numeric(item.speed, "projectile speed");
+        numeric(item.life, "projectile life");
+        if (
+          list === "shells" &&
+          (!Number.isInteger(item.weapon) || item.weapon < 0 || item.weapon > 2)
+        )
+          throw Error("Invalid shell weapon");
+      }
+      if (list === "charges") {
+        numeric(item.t, "charge timer");
+        numeric(item.radius, "blast radius");
+        numeric(item.power, "blast power");
+      }
+    }
+  for (const k of ["rescueX", "rescueY", "rescueProgress", "pointsEarned"])
+    numeric(g.mission[k], "mission " + k);
+  if (g.mission.id === 4 && !g.mission.targetSunk)
+    numeric(g.mission.deadline, "interception deadline");
+  if (g.plane) {
+    for (const key of ["x", "y", "a", "speed", "hp", "life", "acquire", "runT"])
+      numeric(g.plane[key], "aircraft " + key);
+    if (g.plane.state === "approach") {
+      if (!g.plane.target) throw Error("Missing aircraft attack target");
+      numeric(g.plane.target.x, "aircraft target");
+      numeric(g.plane.target.y, "aircraft target");
+    }
+  }
+  for (const fx of g.splashes) {
+    numeric(fx.x, "effect x");
+    numeric(fx.y, "effect y");
+    numeric(fx.life, "effect life");
+    numeric(fx.max, "effect duration");
+  }
+  for (const w of g.wrecks) {
+    numeric(w.x, "wreck x");
+    numeric(w.y, "wreck y");
+    numeric(w.a, "wreck heading");
+    numeric(w.life, "wreck life");
+    numeric(w.max, "wreck duration");
+  }
+  if (g.targeting.estimate)
+    for (const k of ["x", "y", "vx", "vy"])
+      numeric(g.targeting.estimate[k], "target estimate");
+  if (g.targeting.lastSample)
+    for (const k of ["x", "y", "t"])
+      numeric(g.targeting.lastSample[k], "target sample");
+  return g;
+}
+function parsePortableSave(text) {
+  if (text.length > 2 * 1024 * 1024)
+    throw Error("Save exceeds the 2 MB limit.");
+  const data = JSON.parse(text);
+  validateSaveTree(data);
+  if (!Number.isInteger(data.version) || data.version < 8 || data.version > 14)
+    throw Error("Unsupported save version.");
+  const before = nextShipId;
+  try {
+    const restored = migrateSave(data);
+    validateRestoredState(restored);
+    return { data, restored };
+  } finally {
+    nextShipId = before;
+  }
+}
+function exportSave() {
+  if (!game?.active) {
+    setTransferStatus("Start or load a campaign before exporting.");
+    return;
+  }
+  const payload = {
+    format: "gato-convoy-patrol",
+    version: 14,
+    nextShipId,
+    config,
+    game,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json",
+    }),
+    url = URL.createObjectURL(blob),
+    link = document.createElement("a");
+  link.href = url;
+  link.download = `gato-campaign-p${game.campaign.patrol}-${Math.floor(game.time)}s.json`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  setTransferStatus(
+    "Campaign exported. Keep the JSON file to transfer your progress.",
+  );
+}
+function setTransferStatus(text) {
+  document.getElementById("transferStatus").textContent = text;
+  saveStatus.textContent = text;
+}
+async function importSaveFile(file) {
+  if (!file) return false;
+  if (file.size > 2 * 1024 * 1024) {
+    setTransferStatus("Import failed: save exceeds 2 MB.");
+    return false;
+  }
+  try {
+    const { data, restored } = parsePortableSave(await file.text());
+    game = restored;
+    nextShipId =
+      Math.max(data.nextShipId || 1, ...game.ships.map((s) => s.id || 0)) + 1;
+    if (data.config) {
+      config = { ...DEFAULT_CONFIG };
+      for (const key of [
+        "aircraft",
+        "heavyHunters",
+        "autosave",
+        "sonarPenalty",
+        "sound",
+      ])
+        if (typeof data.config[key] === "boolean")
+          config[key] = data.config[key];
+      if (["easy", "normal", "hard"].includes(data.config.difficulty))
+        config.difficulty = data.config.difficulty;
+      syncConfigUI();
+    }
+    document.getElementById("logOverlay").style.display = "none";
+    lastAutoSave = game.time;
+    clearInput();
+    if (game.phase === "port") openPort();
+    else if (game.over) showResults();
+    else closeSplash();
+    recordEvent("Campaign imported from a portable save.", "save");
+    checkpoint();
+    setTransferStatus("Campaign imported successfully.");
+    renderHUD();
+    return true;
+  } catch (e) {
+    setTransferStatus("Import failed: " + e.message);
+    return false;
+  }
+}
+function initTacticalUI() {
+  document.getElementById("exportBtn").addEventListener("click", exportSave);
+  document
+    .getElementById("portExportBtn")
+    .addEventListener("click", exportSave);
+  document
+    .getElementById("importBtn")
+    .addEventListener("click", () =>
+      document.getElementById("importFile").click(),
+    );
+  document
+    .getElementById("importFile")
+    .addEventListener("change", async (e) => {
+      await importSaveFile(e.target.files?.[0]);
+      e.target.value = "";
+    });
+  document.getElementById("logBtn").addEventListener("click", toggleLog);
+  document.getElementById("closeLogBtn").addEventListener("click", toggleLog);
+}
+
+</script>
+    <script>
+"use strict";
+// All gameplay uses a fixed world; browser resizing changes presentation only.
+const WORLD = { w: 1600, h: 1000 },
+  EXIT = { x: 800, y: 906, r: 82 };
+const canvas = document.getElementById("game"),
+  ctx = canvas.getContext("2d");
+canvas.width = WORLD.w;
+canvas.height = WORLD.h;
+const hud = document.getElementById("hud"),
+  msg = document.getElementById("msg"),
+  splash = document.getElementById("splash"),
+  death = document.getElementById("death"),
+  saveStatus = document.getElementById("saveStatus");
+const SAVE_KEY = "gato_convoy_patrol_v14",
+  V13_KEY = "gato_convoy_patrol_v13",
+  V12_KEY = "gato_convoy_patrol_v12",
+  V11_KEY = "gato_convoy_patrol_v11",
+  LEGACY_KEY = "gato_convoy_patrol_v8",
+  CONFIG_KEY = "gato_convoy_patrol_config_v1";
+const DEFAULT_CONFIG = {
+  difficulty: "normal",
+  aircraft: true,
+  heavyHunters: true,
+  autosave: true,
+  sonarPenalty: true,
+  sound: true,
+};
+let config = { ...DEFAULT_CONFIG },
+  game = null,
+  nextShipId = 1,
+  lastAutoSave = 0,
+  saveFlash = 0,
+  hudClock = 0,
+  audioCtx = null;
+const keys = {},
+  pressed = {},
+  padPrevious = {};
+let pad = null;
+const rnd = (a, b) => a + Math.random() * (b - a),
+  clamp = (v, a, b) => Math.max(a, Math.min(b, v)),
+  dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y),
+  norm = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+const GUNS = [
+  {
+    name: "3-inch / 50",
+    short: "3-IN",
+    ammo: "deck",
+    reserve: "deckReserve",
+    cap: 12,
+    reload: 3.5,
+    damage: 28,
+    interval: 0.65,
+    speed: 440,
+    life: 1.8,
+    spread: 0.012,
+    size: 3.5,
+    color: "#ffd386",
+    hull: 1,
+  },
+  {
+    name: "40 mm Bofors",
+    short: "40 MM",
+    ammo: "bofors",
+    reserve: "boforsReserve",
+    cap: 24,
+    reload: 2.5,
+    damage: 8,
+    interval: 0.12,
+    speed: 500,
+    life: 1.25,
+    spread: 0.027,
+    size: 2.5,
+    color: "#fff0a4",
+    hull: 0.35,
+  },
+  {
+    name: "20 mm Oerlikon",
+    short: "20 MM",
+    ammo: "oerlikon",
+    reserve: "oerlikonReserve",
+    cap: 40,
+    reload: 2,
+    damage: 4,
+    interval: 0.075,
+    speed: 520,
+    life: 0.9,
+    spread: 0.045,
+    size: 2,
+    color: "#e2ffeb",
+    hull: 0.18,
+  },
+];
+const DEPTHS = [0, 12, 60];
+function difficultyScale() {
+  return config.difficulty === "easy"
+    ? 0.75
+    : config.difficulty === "hard"
+      ? 1.25
+      : 1;
+}
+function announce(text, seconds = 3) {
+  recordEvent(text);
+  if (game) {
+    game.message = text;
+    game.messageT = seconds;
+  }
+  msg.textContent = text;
+}
+function initAudio() {
+  if (!config.sound) return;
+  try {
+    const A = window.AudioContext || window.webkitAudioContext;
+    if (A && !audioCtx) audioCtx = new A();
+    if (audioCtx?.state === "suspended") audioCtx.resume().catch(() => {});
+  } catch {}
+}
+function tone(
+  freq = 240,
+  duration = 0.12,
+  type = "sine",
+  volume = 0.035,
+  end = 80,
+) {
+  if (!config.sound || !audioCtx) return;
+  try {
+    const o = audioCtx.createOscillator(),
+      g = audioCtx.createGain(),
+      t = audioCtx.currentTime;
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t);
+    o.frequency.exponentialRampToValueAtTime(Math.max(20, end), t + duration);
+    g.gain.setValueAtTime(volume, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + duration);
+    o.connect(g);
+    g.connect(audioCtx.destination);
+    o.start(t);
+    o.stop(t + duration);
+  } catch {}
+}
+function loadConfig() {
+  try {
+    config = {
+      ...DEFAULT_CONFIG,
+      ...JSON.parse(localStorage.getItem(CONFIG_KEY) || "{}"),
+    };
+  } catch {}
+  syncConfigUI();
+}
+function syncConfigUI() {
+  document.getElementById("difficulty").value = config.difficulty;
+  for (const [id, key] of Object.entries({
+    cfgAircraft: "aircraft",
+    cfgHeavy: "heavyHunters",
+    cfgAutosave: "autosave",
+    cfgSonarPenalty: "sonarPenalty",
+    cfgSound: "sound",
+  }))
+    document.getElementById(id).checked = !!config[key];
+}
+function readConfigFromUI() {
+  config.difficulty = document.getElementById("difficulty").value;
+  for (const [id, key] of Object.entries({
+    cfgAircraft: "aircraft",
+    cfgHeavy: "heavyHunters",
+    cfgAutosave: "autosave",
+    cfgSonarPenalty: "sonarPenalty",
+    cfgSound: "sound",
+  }))
+    config[key] = document.getElementById(id).checked;
+  try {
+    localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+  } catch {}
+  if (!config.aircraft && game) game.plane = null;
+}
+function hasSave() {
+  try {
+    return !!(
+      localStorage.getItem(SAVE_KEY) ||
+      localStorage.getItem(V13_KEY) ||
+      localStorage.getItem(V12_KEY) ||
+      localStorage.getItem(V11_KEY) ||
+      localStorage.getItem(LEGACY_KEY)
+    );
+  } catch {
+    return false;
+  }
+}
+function updateMenu() {
+  const has = hasSave();
+  document.getElementById("loadPatrolBtn").disabled = !has;
+  document.getElementById("resumeBtn").disabled = !game;
+  document.getElementById("resumeBtn").textContent =
+    game?.phase === "port"
+      ? "Return to Port"
+      : game?.over
+        ? "View Patrol Report"
+        : "Resume Patrol";
+  try {
+    document.getElementById("loadManualBtn").disabled = !(
+      localStorage.getItem(SAVE_KEY + "_manual") ||
+      localStorage.getItem(V13_KEY + "_manual") ||
+      localStorage.getItem(V12_KEY + "_manual") ||
+      localStorage.getItem(V11_KEY + "_manual")
+    );
+  } catch {
+    document.getElementById("loadManualBtn").disabled = true;
+  }
+  document.getElementById("saveFound").textContent = has
+    ? "Saved patrol available."
+    : "No saved patrol found.";
+}
+function clearInput() {
+  for (const k of Object.keys(keys)) delete keys[k];
+  for (const k of Object.keys(pressed)) delete pressed[k];
+}
+function openSplash() {
+  if (game) {
+    game.timeScale = 1;
+    game.logOpen = false;
+  }
+  document.getElementById("logOverlay").style.display = "none";
+  document.getElementById("port").style.display = "none";
+  splash.style.display = "flex";
+  death.style.display = "none";
+  clearInput();
+  updateMenu();
+}
+function closeSplash() {
+  if (game?.phase === "port") {
+    openPort();
+    return;
+  }
+  if (!game) return;
+  if (game.over) {
+    showResults();
+    return;
+  }
+  splash.style.display = "none";
+  death.style.display = "none";
+  clearInput();
+  initAudio();
+}
+// Campaign progression: missions and upgrades are saved with the patrol.
+const MISSIONS = [
+  {
+    id: 1,
+    name: "First Contact",
+    kind: "merchants",
+    goal: 2,
+    brief:
+      "Sink two merchants and return through the southern exit. A small coastal convoy is your first assignment.",
+    bonus: "No secondary objective. Bring the boat home.",
+    bonusLabel: null,
+  },
+  {
+    id: 2,
+    name: "Fuel Shortage",
+    kind: "target",
+    targetType: "tanker",
+    brief:
+      "Sink the designated tanker marked with a gold diamond, then return south. Other tankers do not satisfy this order.",
+    bonus:
+      "Sink one additional merchant and complete the patrol for +1 upgrade point.",
+    bonusLabel: "Additional merchant",
+  },
+  {
+    id: 3,
+    name: "Lifeguard Duty",
+    kind: "rescue",
+    brief:
+      "Recover the survivors at the liferaft. Stay within 65 units, surfaced and moving no faster than 8 u/s, for 12 seconds. Then return south.",
+    bonus:
+      "Recover the survivors and return with at least 85% hull for +1 upgrade point.",
+    bonusLabel: "Return with 85% hull",
+  },
+  {
+    id: 4,
+    name: "Convoy Interception",
+    kind: "target",
+    targetType: "transport",
+    brief:
+      "Intercept and sink the designated transport before it crosses the eastern exit line. Then return south. Do not get distracted by escorts.",
+    bonus:
+      "Sink the transport before the timer drops below 30 seconds, then return, for +1 upgrade point.",
+    bonusLabel: "Intercept with 30s remaining",
+  },
+  {
+    id: 5,
+    name: "Heavy Opposition",
+    kind: "tonnage",
+    goal: 24000,
+    brief:
+      "Sink at least 24,000 tons of merchant shipping and return. Heavily defended targets are valuable, but you do not need to destroy every ship.",
+    bonus: "Sink at least 36,000 tons and return for a campaign commendation.",
+    bonusLabel: "36,000-ton commendation",
+  },
+];
+const UPGRADES = [
+  {
+    id: "reload",
+    name: "Reload drills",
+    description: "Torpedo reload time −12% per level.",
+    effect: (n) => `${(8 * (1 - 0.12 * n)).toFixed(2)} s reload`,
+  },
+  {
+    id: "battery",
+    name: "Battery maintenance",
+    description: "Submerged endurance +15% per level.",
+    effect: (n) => `+${n * 15}% endurance`,
+  },
+  {
+    id: "quiet",
+    name: "Quiet machinery",
+    description:
+      "Detection from movement noise −12% per level. Visual detection and active sonar are unchanged.",
+    effect: (n) => `−${n * 12}% movement noise`,
+  },
+  {
+    id: "sonar",
+    name: "Sonar training",
+    description: "Active-sonar contact fixes last 15% longer per level.",
+    effect: (n) => `${(5 * (1 + 0.15 * n)).toFixed(2)} s contact fixes`,
+  },
+  {
+    id: "repair",
+    name: "Damage control",
+    description:
+      "One emergency repair per patrol: +15 hull at level 1, +25 at level 2. Takes 10 seconds at slow speed; weapons are unavailable while repairing.",
+    effect: (n) =>
+      n ? `1 repair · +${n === 1 ? 15 : 25} hull` : "No emergency repair",
+  },
+];
+function normalizeCampaign(c = {}) {
+  const out = {
+    patrol: 1,
+    totalScore: 0,
+    totalTonnage: 0,
+    points: 0,
+    upgrades: {},
+    completed: [],
+    bonusClaimed: [],
+    log: [],
+    ended: false,
+    ...c,
+  };
+  out.patrol = clamp(Math.floor(Number(out.patrol) || 1), 1, 5);
+  out.points = Math.max(0, Math.floor(Number(out.points) || 0));
+  out.upgrades = { ...out.upgrades };
+  for (const u of UPGRADES)
+    out.upgrades[u.id] = clamp(
+      Math.floor(Number(out.upgrades[u.id]) || 0),
+      0,
+      2,
+    );
+  out.completed = Array.isArray(out.completed)
+    ? [
+        ...new Set(
+          out.completed.filter((x) => Number.isInteger(x) && x >= 1 && x <= 5),
+        ),
+      ]
+    : [];
+  out.bonusClaimed = Array.isArray(out.bonusClaimed)
+    ? [
+        ...new Set(
+          out.bonusClaimed.filter(
+            (x) => Number.isInteger(x) && x >= 1 && x <= 5,
+          ),
+        ),
+      ]
+    : [];
+  out.log = Array.isArray(out.log) ? out.log : [];
+  out.crew = normalizeCrew(out.crew);
+  out.raidCompleted = out.raidCompleted === true;
+  return out;
+}
+function missionDef(g = game) {
+  if (g?.mission?.id === 6) return HARBOR_MISSION;
+  return (
+    MISSIONS[(g?.mission?.id || g?.campaign?.patrol || 1) - 1] || MISSIONS[0]
+  );
+}
+function freshMission(id) {
+  return {
+    id,
+    targetId: null,
+    targetSunk: false,
+    targetEscaped: false,
+    failed: false,
+    rescueX: 1020,
+    rescueY: 420,
+    rescueProgress: 0,
+    rescued: false,
+    deadline: null,
+    targetKillTime: null,
+    awarded: false,
+    pointsEarned: 0,
+    bonusEarned: false,
+  };
+}
+function upgradeLevel(id) {
+  return game?.campaign?.upgrades?.[id] || 0;
+}
+function objectiveComplete(g = game) {
+  if (!g?.mission || g.mission.failed) return false;
+  if (g.mission.id === 6)
+    return !!g.harbor && g.harbor.sunk.length === 2 && g.harbor.fuelHP <= 0;
+  const d = missionDef(g),
+    m = g.mission;
+  return d.kind === "merchants"
+    ? g.stats.merchants >= d.goal
+    : d.kind === "tonnage"
+      ? g.stats.tonnage >= d.goal
+      : d.kind === "rescue"
+        ? m.rescued
+        : m.targetSunk;
+}
+function objectiveProgress() {
+  const d = missionDef(),
+    m = game.mission;
+  if (m.id === 6)
+    return `${game.harbor.sunk.length}/2 ships · fuel ${game.harbor.fuelHP <= 0 ? "destroyed" : Math.ceil(game.harbor.fuelHP) + " HP"}`;
+  if (m.failed) return "TARGET ESCAPED";
+  if (d.kind === "merchants")
+    return `${game.stats.merchants} / ${d.goal} merchants`;
+  if (d.kind === "tonnage")
+    return `${game.stats.tonnage.toLocaleString()} / ${d.goal.toLocaleString()} tons`;
+  if (d.kind === "rescue")
+    return m.rescued
+      ? "SURVIVORS ABOARD"
+      : `${m.rescueProgress.toFixed(1)} / 12 s recovery`;
+  return m.targetSunk
+    ? "TARGET SUNK"
+    : d.id === 4
+      ? `${Math.max(0, Math.ceil(m.deadline - game.time))} s to intercept`
+      : "DESIGNATED TANKER";
+}
+function bonusComplete() {
+  const m = game.mission;
+  return m.id === 2
+    ? m.targetSunk && game.stats.merchants >= 2
+    : m.id === 3
+      ? m.rescued && game.sub.hull >= 85
+      : m.id === 4
+        ? m.targetSunk && m.deadline - m.targetKillTime >= 30
+        : m.id === 5
+          ? game.stats.tonnage >= 36000
+          : false;
+}
+function newCampaign() {
+  newGame(normalizeCampaign());
+  openPort(1);
+}
+function openPort(nextId) {
+  if (!game || game.campaign.ended) return;
+  game.phase = "port";
+  game.portMission = nextId || game.portMission || game.campaign.patrol;
+  document.getElementById("port").style.display = "flex";
+  splash.style.display = "none";
+  death.style.display = "none";
+  clearInput();
+  renderPort();
+  checkpoint();
+}
+function renderPort() {
+  const c = game.campaign,
+    d =
+      game.plannedSortie === "harbor"
+        ? HARBOR_MISSION
+        : MISSIONS[game.portMission - 1];
+  document.getElementById("portTitle").textContent =
+    d.id === 6
+      ? "Special assignment — Blackwater Harbor"
+      : `Patrol ${d.id} / 5 — ${d.name}`;
+  document.getElementById("portBrief").textContent = d.brief;
+  document.getElementById("portBonus").textContent = d.bonus;
+  document.getElementById("upgradePoints").textContent =
+    `${c.points} upgrade point${c.points === 1 ? "" : "s"} available`;
+  document.getElementById("portStatus").textContent =
+    game.portNotice ||
+    (c.completed.length
+      ? "Your boat will depart fully repaired, rearmed, and charged. Unspent points carry forward."
+      : "Complete your first patrol to earn an upgrade point. Your boat is provisioned for departure.");
+  document.getElementById("campaignTrack").innerHTML = MISSIONS.map(
+    (m) =>
+      `<span class="missionStep ${c.completed.includes(m.id) ? "done" : m.id === d.id ? "current" : ""}">${c.completed.includes(m.id) ? "✓ " : ""}${m.id}. ${m.name}</span>`,
+  ).join("");
+  const list = document.getElementById("upgradeList");
+  list.innerHTML = "";
+  for (const u of UPGRADES) {
+    const n = c.upgrades[u.id],
+      card = document.createElement("article");
+    card.className = "upgradeCard";
+    const body = document.createElement("div");
+    body.innerHTML = `<b>${u.name}</b><span class="level">${n} / 2</span><p>${u.description}</p><span class="small yellow">${u.effect(n)}${n < 2 ? " → " + u.effect(n + 1) : ""}</span>`;
+    const button = document.createElement("button");
+    button.textContent = n >= 2 ? "Fully trained" : "Upgrade · 1 point";
+    button.disabled = n >= 2 || c.points < 1;
+    button.dataset.upgrade = u.id;
+    button.addEventListener("click", () => buyUpgrade(u.id));
+    card.appendChild(body);
+    card.appendChild(button);
+    list.appendChild(card);
+  }
+  const log = document.getElementById("campaignLog");
+  log.textContent = c.log.length
+    ? c.log
+        .map(
+          (entry) =>
+            `Patrol ${entry.patrol}: ${entry.outcome === "success" ? "Complete" : entry.outcome === "lost" ? "Lost" : "Returned early"} · ${entry.tonnage.toLocaleString()} tons · ${entry.score.toLocaleString()} points`,
+        )
+        .join(" | ")
+    : "Five missions. Upgrade your crew and bring the boat home.";
+  document.getElementById("departBtn").textContent = c.completed.includes(d.id)
+    ? "Depart again"
+    : `Depart · Patrol ${d.id}`;
+  renderApproaches();
+  renderCrewPort();
+  document.getElementById("departBtn").textContent =
+    d.id === 6 ? "Depart · Harbor Raid" : `Depart · Patrol ${d.id}`;
+}
+function buyUpgrade(id) {
+  const u = UPGRADES.find((x) => x.id === id);
+  if (
+    !u ||
+    game?.phase !== "port" ||
+    game.campaign.points < 1 ||
+    upgradeLevel(id) >= 2
+  )
+    return false;
+  game.campaign.points--;
+  game.campaign.upgrades[id]++;
+  game.portNotice = `${u.name} upgraded. ${u.effect(upgradeLevel(id))}.`;
+  renderPort();
+  checkpoint();
+  tone(520, 0.12, "sine", 0.025, 850);
+  return true;
+}
+function departPort() {
+  if (!game || game.phase !== "port" || game.campaign.ended) return;
+  const c = normalizeCampaign(game.campaign);
+  c.patrol = game.portMission;
+  c.approach = game.plannedApproach;
+  newGame(c, game.plannedSortie === "harbor" ? "harbor" : "campaign");
+  checkpoint();
+}
+function emergencyRepair() {
+  const s = game.sub;
+  if (game.over || game.phase !== "patrol" || s.repairT > 0) return;
+  if (!s.repairCharges) {
+    announce(
+      upgradeLevel("repair")
+        ? "Emergency repair already used this patrol"
+        : "Damage control upgrade required — available at port",
+    );
+    return;
+  }
+  if (s.hull >= 100) {
+    announce("Hull already at 100%");
+    return;
+  }
+  if (Math.abs(s.speed) > 8) {
+    announce("Slow to 8 u/s or less to start emergency repairs");
+    return;
+  }
+  s.repairT = crewHas("chief") ? 12 : 10;
+  announce(`DAMAGE CONTROL — maintain slow speed for ${s.repairT} seconds`, 4);
+}
+function updateMission(dt) {
+  const m = game.mission,
+    s = game.sub,
+    d = missionDef();
+  if (m.failed) return;
+  if (d.kind === "rescue" && !m.rescued) {
+    if (
+      dist(s, { x: m.rescueX, y: m.rescueY }) <= 65 &&
+      s.depth < 3 &&
+      Math.abs(s.speed) <= 8
+    ) {
+      m.rescueProgress = Math.min(12, m.rescueProgress + dt);
+      if (m.rescueProgress >= 12) {
+        m.rescued = true;
+        game.score += 600;
+        announce("SURVIVORS ABOARD — return south", 5);
+      }
+    } else m.rescueProgress = 0;
+  }
+  if (d.kind === "target" && !m.targetSunk) {
+    const target = game.ships.find((sh) => sh.id === m.targetId);
+    if (d.id === 4 && target?.alive && target.x < 1510)
+      m.deadline =
+        game.time +
+        (1510 - target.x) / Math.max(0.1, Math.cos(target.a) * target.speed);
+    if (
+      m.targetEscaped ||
+      (d.id === 4 && (game.time >= m.deadline || (target && target.x >= 1510)))
+    ) {
+      m.failed = true;
+      m.targetEscaped = true;
+      announce("MISSION TARGET ESCAPED — return south to refit and retry", 7);
+    }
+  }
+  if (objectiveComplete() && !game.objectiveAnnounced) {
+    game.objectiveAnnounced = true;
+    announce("PRIMARY OBJECTIVE COMPLETE — return south", 5);
+  }
+}
+function drawMission() {
+  if (!game?.mission) return;
+  const m = game.mission,
+    d = missionDef();
+  if (d.kind === "rescue" && !m.rescued) {
+    ctx.save();
+    ctx.setLineDash([5, 6]);
+    circle(m.rescueX, m.rescueY, 65, "#8ad9c5", 2);
+    ctx.setLineDash([]);
+    ctx.fillStyle = "#f0b270";
+    ctx.fillRect(m.rescueX - 13, m.rescueY - 7, 26, 14);
+    label("SURVIVORS", m.rescueX, m.rescueY - 35, "#b7ffe4", 15);
+    label(
+      "Surface · ≤8 u/s · 12 seconds",
+      m.rescueX,
+      m.rescueY + 87,
+      "#d1ece3",
+      13,
+    );
+    if (m.rescueProgress > 0)
+      label(
+        m.rescueProgress.toFixed(1) + " / 12 s",
+        m.rescueX,
+        m.rescueY + 30,
+        "#fff3bc",
+        14,
+      );
+    ctx.restore();
+  }
+  if (d.kind === "target" && !m.targetSunk && !m.failed) {
+    const target = game.ships.find((sh) => sh.id === m.targetId && sh.alive);
+    if (target) {
+      const visible =
+        game.sub.depth < 3 ||
+        (game.sub.depth < 18 && dist(game.sub, target) < 570) ||
+        game.sub.sonarMarks.some(
+          (mark) => mark.shipId === target.id && mark.ttl > 0,
+        );
+      if (visible) {
+        ctx.save();
+        ctx.translate(target.x, target.y);
+        ctx.rotate(Math.PI / 4);
+        ctx.strokeStyle = "#ffdf88";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(-32, -32, 64, 64);
+        ctx.restore();
+        label("MISSION TARGET", target.x, target.y - 53, "#ffe5a0", 13);
+      }
+    }
+  }
+  if (d.id === 4) {
+    ctx.save();
+    ctx.setLineDash([9, 8]);
+    ctx.strokeStyle = "#ddb16f88";
+    ctx.beginPath();
+    ctx.moveTo(1510, 80);
+    ctx.lineTo(1510, 600);
+    ctx.stroke();
+    ctx.restore();
+    label("TARGET EXIT", 1460, 65, "#eac189", 12);
+  }
+}
+function awardMission() {
+  const c = game.campaign,
+    m = game.mission;
+  if (m.awarded) return;
+  m.awarded = true;
+  if (m.id === 6) {
+    if (game.outcome === "success" && !c.raidCompleted) {
+      c.raidCompleted = true;
+      c.points++;
+      m.pointsEarned = 1;
+    }
+    c.log.push({
+      patrol: 6,
+      outcome: game.outcome,
+      tonnage: game.stats.tonnage,
+      score: game.score,
+      hull: Math.round(game.sub.hull),
+      points: m.pointsEarned,
+    });
+    return;
+  }
+  if (game.outcome === "success" && !c.completed.includes(m.id)) {
+    c.completed.push(m.id);
+    c.points++;
+    m.pointsEarned++;
+    if (
+      m.id >= 2 &&
+      m.id <= 4 &&
+      bonusComplete() &&
+      !c.bonusClaimed.includes(m.id)
+    ) {
+      c.bonusClaimed.push(m.id);
+      c.points++;
+      m.pointsEarned++;
+      m.bonusEarned = true;
+    }
+    if (m.id === 5) {
+      c.ended = true;
+      m.bonusEarned = bonusComplete();
+    }
+  }
+  c.log.push({
+    patrol: m.id,
+    outcome: game.outcome,
+    tonnage: game.stats.tonnage,
+    score: game.score,
+    hull: Math.round(game.sub.hull),
+    points: m.pointsEarned,
+  });
+}
+function nextPatrol() {
+  if (!game || !game.over || game.outcome === "lost" || game.campaign.ended)
+    return;
+  if (game.mission.id === 6) {
+    openPort(game.campaign.patrol);
+    return;
+  }
+  openPort(
+    game.outcome === "success"
+      ? Math.min(5, game.mission.id + 1)
+      : game.mission.id,
+  );
+}
+
+function makeSub() {
+  return {
+    x: 800,
+    y: 760,
+    a: -Math.PI / 2,
+    speed: 0,
+    depth: 0,
+    targetDepth: 0,
+    hull: 100,
+    battery: 100,
+    detected: 0,
+    pingAlert: 0,
+    launchAlert: 0,
+    gunAlert: 0,
+    sonarCD: 0,
+    sonarPulse: 0,
+    sonarMarks: [],
+    selectedGun: 0,
+    aimAngle: 0,
+    fwdTubes: 6,
+    aftTubes: 4,
+    torpReserve: 14,
+    torpCD: 0,
+    torpReloading: false,
+    torpReloadT: 0,
+    deck: 12,
+    deckReserve: 108,
+    bofors: 24,
+    boforsReserve: 240,
+    oerlikon: 40,
+    oerlikonReserve: 400,
+    mounts: GUNS.map(() => ({ cd: 0, reload: 0 })),
+    lowBatteryWarned: false,
+    exhausted: false,
+    repairCharges: 0,
+    repairT: 0,
+  };
+}
+function newGame(campaign = null, sortie = "campaign") {
+  readConfigFromUI();
+  nextShipId = 1;
+  game = {
+    version: 14,
+    active: true,
+    over: false,
+    outcome: null,
+    time: 0,
+    score: 0,
+    campaign: normalizeCampaign(campaign || {}),
+    sub: makeSub(),
+    ships: [],
+    shots: [],
+    shells: [],
+    enemyShells: [],
+    charges: [],
+    splashes: [],
+    wrecks: [],
+    signals: [],
+    plane: null,
+    planeTimer: 45,
+    encounter: 0,
+    encounterName: "",
+    encounterAge: 0,
+    nextEncounterIn: null,
+    extraction: 0,
+    clearContact: 0,
+    objectiveAnnounced: false,
+    stats: {
+      merchants: 0,
+      escorts: 0,
+      aircraft: 0,
+      tonnage: 0,
+      shots: 0,
+      hits: 0,
+      torpedoesFired: 0,
+      torpedoHits: 0,
+    },
+    message: "",
+    messageT: 0,
+    soundCD: 0,
+  };
+  game.phase = "patrol";
+  game.mission = freshMission(game.campaign.patrol);
+  initTactics(game);
+  game.sub.repairCharges =
+    upgradeLevel("repair") > 0 || crewHas("chief") ? 1 : 0;
+  if (crewHas("torpedoman")) game.sub.torpReserve -= 2;
+  game.plannedSortie = sortie;
+  game.planeTimer =
+    game.campaign.patrol === 1 ? 90 : game.campaign.patrol === 3 ? 22 : 35;
+  if (sortie === "harbor") initHarbor(game);
+  else spawnConvoy();
+  document.getElementById("port").style.display = "none";
+  death.style.display = "none";
+  closeSplash();
+  lastAutoSave = 0;
+  announce(missionDef().brief, 8);
+  renderHUD();
+}
+function makeShip(x, y, a, type, convoySpeed) {
+  const heavy = type === "heavy",
+    escort = type === "escort" || heavy,
+    small = type === "coaster",
+    tanker = type === "tanker",
+    transport = type === "transport";
+  const hp = heavy
+    ? 180
+    : escort
+      ? 85
+      : tanker
+        ? 145
+        : transport
+          ? 125
+          : small
+            ? 85
+            : 110;
+  return {
+    id: nextShipId++,
+    x,
+    y,
+    a,
+    routeA: a,
+    type,
+    escort,
+    heavy,
+    small,
+    hp,
+    maxhp: hp,
+    tonnage: escort
+      ? 0
+      : tanker
+        ? 12000
+        : transport
+          ? 9000
+          : small
+            ? 3500
+            : 6000,
+    speed: convoySpeed,
+    convoySpeed,
+    alive: true,
+    fire: rnd(1, 3),
+    contact: 0,
+    state: "patrol",
+    lastKnown: null,
+    searchT: 0,
+    sampleT: 0,
+    sonarT: rnd(3, 6),
+    attack: null,
+    burn: 0,
+    burnTick: 0,
+    smokeT: 0,
+    convoyId: game?.encounter || 0,
+    role: "hunter",
+    alertUntil: 0,
+  };
+}
+function spawnConvoy() {
+  if (game.harbor) return;
+  game.encounter++;
+  game.encounterAge = 0;
+  game.nextEncounterIn = null;
+  const d = missionDef(),
+    first = game.encounter === 1;
+  let kind =
+    d.id === 1
+      ? "opening"
+      : d.id === 2
+        ? "high-value"
+        : d.id === 3
+          ? "rescue"
+          : d.id === 4
+            ? "intercept"
+            : "challenge";
+  if (!first && d.id !== 1)
+    kind = game.encounter % 2 ? "high-value" : "standard";
+  game.encounterName = {
+    opening: "Coastal supply group",
+    "high-value": "Tanker convoy",
+    rescue: "Rescue-area patrol",
+    intercept: "Eastbound troop transport",
+    challenge: "Heavily defended shipping",
+    standard: "Merchant convoy",
+  }[kind];
+  const fromLeft = first ? true : Math.random() < 0.5,
+    a = fromLeft ? 0.035 : Math.PI - 0.035,
+    baseX = fromLeft ? 140 : WORLD.w - 140,
+    baseY = d.id === 4 && first ? 320 : rnd(220, 340),
+    speed = d.id === 4 && first ? 13 : kind === "opening" ? 16 : 18;
+  const f = { x: Math.cos(a), y: Math.sin(a) },
+    r = { x: -Math.sin(a), y: Math.cos(a) };
+  const types =
+    kind === "opening"
+      ? ["coaster", "merchant"]
+      : kind === "high-value"
+        ? ["tanker", "merchant", "coaster"]
+        : kind === "rescue"
+          ? []
+          : kind === "intercept"
+            ? ["transport", "merchant"]
+            : kind === "challenge"
+              ? ["tanker", "transport", "merchant", "merchant"]
+              : ["merchant", "coaster", "transport"];
+  types.forEach((type, i) => {
+    const lateral = (i % 2 ? 1 : -1) * 48,
+      back = Math.floor(i / 2) * 95;
+    const sh = makeShip(
+      baseX + r.x * lateral - f.x * back,
+      baseY + r.y * lateral - f.y * back,
+      a,
+      type,
+      speed,
+    );
+    if (first && type === d.targetType && game.mission.targetId === null) {
+      game.mission.targetId = sh.id;
+      sh.missionTarget = true;
+      if (d.id === 4)
+        game.mission.deadline = (1510 - sh.x) / (Math.cos(a) * speed);
+    }
+    game.ships.push(sh);
+  });
+  const escorts = Math.max(
+    1,
+    (kind === "opening" || kind === "rescue"
+      ? 1
+      : kind === "challenge"
+        ? 3
+        : 2) + approachDef(game.approach).escorts,
+  );
+  for (let i = 0; i < escorts; i++) {
+    const lateral = i === 0 ? 145 : i === 1 ? -145 : 0,
+      forward = i === 2 ? 150 : 20;
+    const escort = makeShip(
+      baseX + r.x * lateral + f.x * forward,
+      baseY + r.y * lateral + f.y * forward,
+      a,
+      "escort",
+      speed + 3,
+    );
+    escort.role = escorts > 1 && i === escorts - 1 ? "guard" : "hunter";
+    game.ships.push(escort);
+  }
+  if (
+    config.heavyHunters &&
+    (kind === "challenge" || (!first && kind === "high-value" && d.id >= 4))
+  )
+    game.ships.push(
+      makeShip(
+        baseX + r.x * 225 - f.x * 45,
+        baseY + r.y * 225 - f.y * 45,
+        a,
+        "heavy",
+        speed + 4,
+      ),
+    );
+  if (!first)
+    announce(`${game.encounterName.toUpperCase()} — optional targets`, 4);
+}
+function currentAim() {
+  return game.sub.a + game.sub.aimAngle;
+}
+function selectedTubeBank() {
+  return Math.abs(norm(game.sub.aimAngle)) <= Math.PI / 2 ? "FWD" : "AFT";
+}
+function selectGun(i) {
+  game.sub.selectedGun = (i + GUNS.length) % GUNS.length;
+  tone(400, 0.05, "sine", 0.012, 600);
+}
+function setDepth(depth) {
+  const s = game.sub;
+  if (s.exhausted && depth > 0) {
+    announce("Battery depleted — remain surfaced to recharge");
+    return;
+  }
+  s.targetDepth = depth;
+  announce(
+    depth === 0
+      ? "SURFACE — guns and battery charging"
+      : depth === 12
+        ? "PERISCOPE DEPTH — visual targeting and torpedoes"
+        : "DEEP — slow down to break contact",
+  );
+}
+function cycleDepth() {
+  setDepth(DEPTHS[(DEPTHS.indexOf(game.sub.targetDepth) + 1) % 3]);
+}
+function beginReload(index = game.sub.selectedGun) {
+  const s = game.sub,
+    g = GUNS[index],
+    m = s.mounts[index];
+  if (game.over || m.reload > 0 || s[g.ammo] >= g.cap || s[g.reserve] <= 0)
+    return;
+  m.reload = g.reload * (index === 0 && crewHas("captain") ? 1.1 : 1);
+}
+function reloadTorpedoes() {
+  const s = game.sub;
+  if (
+    game.over ||
+    s.torpReloading ||
+    s.torpReserve <= 0 ||
+    (s.fwdTubes === 6 && s.aftTubes === 4)
+  )
+    return;
+  s.torpReloading = true;
+  s.torpReloadT =
+    8 * (1 - 0.12 * upgradeLevel("reload")) * (crewHas("torpedoman") ? 0.9 : 1);
+  announce("Torpedo reload — " + s.torpReloadT.toFixed(2) + " seconds");
+}
+function signal(type, x, y, radius, ttl = 2) {
+  game.signals.push({ type, x, y, radius, ttl });
+}
+function fireTorpedo() {
+  const s = game.sub;
+  if (game.over || s.torpReloading || s.torpCD > 0 || s.repairT > 0) return;
+  if (s.depth > 15) {
+    announce("Too deep to launch — rise to periscope depth");
+    return;
+  }
+  const bank = selectedTubeBank(),
+    key = bank === "FWD" ? "fwdTubes" : "aftTubes",
+    spread = SPREADS[s.spread];
+  if (s[key] < spread.count) {
+    announce(
+      `${bank} needs ${spread.count} loaded tube${spread.count > 1 ? "s" : ""} — select single shot or reload`,
+    );
+    return;
+  }
+  s[key] -= spread.count;
+  s.torpCD = spread.count === 1 ? 0.85 : 1.4;
+  s.launchAlert = 3;
+  s.silent = false;
+  const origin = bank === "FWD" ? 30 : -30;
+  for (let i = 0; i < spread.count; i++) {
+    game.shots.push({
+      x: s.x + Math.cos(s.a) * origin,
+      y: s.y + Math.sin(s.a) * origin,
+      ox: s.x,
+      oy: s.y,
+      a: currentAim() + (i - (spread.count - 1) / 2) * spread.angle,
+      speed: 220,
+      life: 7,
+      damage: 85,
+    });
+  }
+  game.stats.shots += spread.count;
+  game.stats.torpedoesFired += spread.count;
+  signal("launch", s.x, s.y, 430, 3);
+  recordEvent(
+    `${bank} ${spread.name.toLowerCase()} launched: ${spread.count} torpedo${spread.count > 1 ? "es" : ""}.`,
+    "attack",
+  );
+  game.timeScale = 1;
+  tone(150, 0.25, "triangle", 0.04, 45);
+}
+function fireGun() {
+  const s = game.sub,
+    index = s.selectedGun,
+    g = GUNS[index],
+    m = s.mounts[index];
+  if (game.over || s.depth >= 3 || m.reload > 0 || m.cd > 0 || s.repairT > 0)
+    return;
+  if (s[g.ammo] <= 0) {
+    beginReload(index);
+    return;
+  }
+  const a = currentAim();
+  s[g.ammo]--;
+  m.cd = g.interval;
+  s.gunAlert = 2;
+  game.shells.push({
+    x: s.x + Math.cos(a) * 32,
+    y: s.y + Math.sin(a) * 32,
+    ox: s.x,
+    oy: s.y,
+    a: a + rnd(-g.spread, g.spread) * game.weather.gunSpread,
+    speed: g.speed,
+    life: g.life,
+    damage: g.damage,
+    size: g.size,
+    color: g.color,
+    weapon: index,
+  });
+  game.stats.shots++;
+  if (game.time - game.lastGunLog > 3) {
+    recordEvent(g.name + " opened fire.", "attack");
+    game.lastGunLog = game.time;
+  }
+  signal("gun", s.x, s.y, 620, 0.2);
+  effect(s.x + Math.cos(a) * 36, s.y + Math.sin(a) * 36, "muzzle", 0.12);
+  if (s[g.ammo] === 0) beginReload(index);
+  if (game.soundCD <= 0) {
+    tone(index === 0 ? 115 : 200, 0.08, "sawtooth", 0.025, 45);
+    game.soundCD = 0.1;
+  }
+}
+function activeSonar() {
+  const s = game.sub;
+  if (game.over || s.depth < 3 || s.sonarCD > 0) return;
+  s.sonarCD = 7;
+  s.sonarPulse = 1;
+  s.sonarMarks = [];
+  if (config.sonarPenalty) {
+    s.pingAlert = 3;
+    signal("ping", s.x, s.y, 680 * (crewHas("sonarman") ? 1.1 : 1), 3);
+  }
+  for (const sh of game.ships) {
+    if (
+      sh.alive &&
+      dist(s, sh) <= 760 &&
+      Math.abs(norm(Math.atan2(sh.y - s.y, sh.x - s.x) - s.a)) <= Math.PI / 4
+    )
+      s.sonarMarks.push({
+        shipId: sh.id,
+        x: sh.x,
+        y: sh.y,
+        ttl:
+          5 *
+          (1 + 0.15 * upgradeLevel("sonar")) *
+          (crewHas("sonarman") ? 1.15 : 1),
+        observedAt: game.time,
+        range: Math.round(dist(s, sh)),
+      });
+  }
+  announce(`ACTIVE SONAR — ${s.sonarMarks.length} contact returns`);
+  tone(1100, 0.4, "sine", 0.035, 750);
+}
+// Detection is local to each escort. Search and attack orders use sampled positions.
+function turnToward(sh, x, y, rate, dt) {
+  const desired = Math.atan2(y - sh.y, x - sh.x);
+  sh.a += clamp(norm(desired - sh.a), -rate * dt, rate * dt);
+}
+function updateEscort(sh, dt) {
+  if (updateDecoyEscort(sh, dt)) return;
+  const s = game.sub,
+    ag = difficultyScale(),
+    d = dist(sh, s);
+  sh.fire = Math.max(0, sh.fire - dt);
+  sh.sampleT -= dt;
+  sh.sonarT -= dt;
+  let strength = 0;
+  if (s.depth < 3)
+    strength = clamp(
+      (590 * game.weather.visual - d) / (340 * game.weather.visual),
+      0,
+      1,
+    );
+  else if (s.depth < 18)
+    strength = clamp(
+      (280 * game.weather.visual - d) / (220 * game.weather.visual),
+      0,
+      0.8,
+    );
+  else strength = clamp((115 - d) / 100, 0, 0.85);
+  if (s.depth >= 3) {
+    const noisy = clamp((Math.abs(s.speed) - 8) / 25, 0, 1);
+    strength = Math.max(
+      strength,
+      clamp((340 - d) / 260, 0, 1) *
+        noisy *
+        0.85 *
+        (1 - 0.12 * upgradeLevel("quiet")) *
+        (crewHas("engineer") ? 1.05 : 1) *
+        (s.silent ? 0.35 : 1),
+    );
+  }
+  if (s.depth >= 3 && sh.sonarT <= 0) {
+    sh.sonarT = rnd(4.5, 7) / ag;
+    if (d < 330) {
+      effect(sh.x, sh.y, "ping", 1.7);
+      tone(720, 0.2, "sine", 0.018, 500);
+      strength = Math.max(strength, clamp((220 - d) / 180, 0, 0.9));
+    }
+  }
+  let heard = null;
+  for (const sig of game.signals) {
+    if (dist(sh, sig) < sig.radius) {
+      heard = sig;
+      break;
+    }
+  }
+  if (heard && sh.state === "patrol" && sh.contact < 0.2) {
+    sh.lastKnown = { x: heard.x + rnd(-65, 65), y: heard.y + rnd(-65, 65) };
+    sh.state = "investigate";
+    sh.searchT = 20;
+    sh.contact = 0.22;
+  }
+  if (strength > 0.16) {
+    sh.contact = clamp(sh.contact + strength * 0.7 * ag * dt, 0, 1);
+    if (sh.sampleT <= 0) {
+      const error = (1 - sh.contact) * (s.depth < 3 ? 20 : 75);
+      sh.lastKnown = {
+        x: s.x + rnd(-error, error),
+        y: s.y + rnd(-error, error),
+      };
+      sh.sampleT = s.depth < 3 ? 0.7 : 2.5;
+      sh.searchT = 22;
+    }
+  } else
+    sh.contact = Math.max(
+      0,
+      sh.contact - dt * 0.055 * (crewHas("captain") ? 1.1 : 1),
+    );
+  if (sh.contact > 0.52 && !sh.attack) {
+    sh.state = "track";
+  } else if (sh.state === "track" && sh.contact < 0.3) {
+    sh.state = "search";
+    sh.searchT = 22;
+  }
+  if (sh.state === "investigate" || sh.state === "search") {
+    sh.searchT -= dt;
+    if (sh.searchT <= 0) {
+      sh.state = "patrol";
+      sh.lastKnown = null;
+      sh.contact = 0;
+    }
+  }
+  if (
+    sh.lastKnown &&
+    sh.contact > 0.58 &&
+    s.depth >= 3 &&
+    !sh.attack &&
+    sh.fire <= 0 &&
+    dist(sh, sh.lastKnown) < 280
+  ) {
+    sh.attack = {
+      x: clamp(sh.lastKnown.x + rnd(-28, 28), 30, WORLD.w - 30),
+      y: clamp(sh.lastKnown.y + rnd(-28, 28), 30, WORLD.h - 30),
+      depth: s.depth < 20 ? 12 : 60,
+      stage: "approach",
+      run: 0,
+    };
+    sh.state = "attack";
+    announce("ESCORT ATTACK RUN — change course and depth", 2.5);
+  }
+  let desiredSpeed = sh.convoySpeed;
+  const guard = convoyGuardPoint(sh);
+  if (guard && !sh.attack) {
+    sh.state = "screen";
+    turnToward(sh, guard.x, guard.y, 0.6 * ag, dt);
+    desiredSpeed = dist(sh, guard) > 80 ? 30 : sh.convoySpeed;
+  } else if (sh.attack) {
+    const at = sh.attack;
+    desiredSpeed = sh.heavy ? 45 : 42;
+    if (at.stage === "approach") {
+      turnToward(sh, at.x, at.y, (sh.heavy ? 0.55 : 0.75) * ag, dt);
+      if (dist(sh, at) < 48) {
+        dropCharges(sh, at);
+        at.stage = "run";
+        at.run = 4;
+        sh.fire = (sh.heavy ? 13 : 16) / ag;
+      }
+    } else {
+      at.run -= dt;
+      if (at.run <= 0) {
+        sh.attack = null;
+        sh.state = "search";
+        sh.searchT = 22;
+      }
+    }
+  } else if (sh.state !== "patrol" && sh.lastKnown) {
+    desiredSpeed = sh.state === "track" ? 40 : 31;
+    const search = sh.state === "search" || dist(sh, sh.lastKnown) < 45;
+    const phase = game.time * 0.22 + sh.id;
+    const tx = sh.lastKnown.x + (search ? Math.cos(phase) * 95 : 0),
+      ty = sh.lastKnown.y + (search ? Math.sin(phase) * 95 : 0);
+    turnToward(sh, tx, ty, 0.65 * ag, dt);
+  } else {
+    sh.a += clamp(norm(sh.routeA - sh.a), -0.4 * dt, 0.4 * dt);
+  }
+  if (
+    s.depth < 3 &&
+    sh.contact > 0.5 &&
+    d < (sh.heavy ? 490 : 390) &&
+    sh.fire <= 0
+  ) {
+    const a = Math.atan2(s.y - sh.y, s.x - sh.x) + rnd(-0.025, 0.025);
+    const count = sh.heavy ? 2 : 1;
+    for (let i = 0; i < count; i++)
+      game.enemyShells.push({
+        x: sh.x + Math.cos(a) * 30,
+        y: sh.y + Math.sin(a) * 30,
+        a: a + (i - (count - 1) / 2) * 0.05,
+        speed: 250,
+        life: 2.2,
+        damage: sh.heavy ? 9 : 7,
+      });
+    sh.fire = (sh.heavy ? 2.8 : 3.5) / ag;
+    effect(sh.x, sh.y, "muzzle", 0.18);
+  }
+  sh.speed = desiredSpeed * (sh.hp < sh.maxhp * 0.4 ? 0.8 : 1);
+  sh.x += Math.cos(sh.a) * sh.speed * dt;
+  sh.y += Math.sin(sh.a) * sh.speed * dt;
+}
+function dropCharges(sh, at) {
+  const count = sh.heavy ? 4 : 3;
+  for (let i = 0; i < count; i++) {
+    const back = i * 24;
+    game.charges.push({
+      x: sh.x - Math.cos(sh.a) * back + rnd(-12, 12),
+      y: sh.y - Math.sin(sh.a) * back + rnd(-12, 12),
+      t: 2.8 + i * 0.22,
+      total: 2.8 + i * 0.22,
+      depth: at.depth,
+      kind: "depth",
+      power: 22,
+      radius: 82,
+    });
+  }
+  announce("DEPTH CHARGES RELEASED — evade the marked pattern", 3);
+  tone(180, 0.3, "triangle", 0.045, 60);
+}
+function spawnPlane() {
+  const s = game.sub,
+    left = Math.random() < 0.5;
+  game.plane = {
+    x: left ? -70 : WORLD.w + 70,
+    y: clamp(s.y + rnd(-190, 190), 80, WORLD.h - 120),
+    a: left ? 0 : Math.PI,
+    speed: 135,
+    hp: 32,
+    maxhp: 32,
+    life: 26,
+    state: "patrol",
+    target: null,
+    acquire: 0,
+    runT: 0,
+    attacks: 0,
+  };
+  game.planeTimer = rnd(45, 65);
+  announce("AIRCRAFT SIGHTED — watch for its attack approach", 3);
+}
+function updatePlane(dt) {
+  const p = game.plane,
+    s = game.sub;
+  if (!p) return;
+  p.life -= dt;
+  if (p.state === "patrol") {
+    const visible =
+      (s.depth < 3 ? 480 : s.depth < 18 ? 230 : 0) *
+      game.weather.visual *
+      game.weather.airFactor;
+    if (dist(p, s) < visible) {
+      p.acquire += dt;
+      if (p.acquire >= 0.9) {
+        p.state = "approach";
+        p.target = {
+          x: clamp(s.x + Math.cos(s.a) * s.speed * 1.2, 20, WORLD.w - 20),
+          y: clamp(s.y + Math.sin(s.a) * s.speed * 1.2, 20, WORLD.h - 20),
+        };
+        p.runT = 0;
+        announce("AIRCRAFT ATTACKING — crash dive or maneuver", 3);
+        tone(520, 0.4, "triangle", 0.03, 230);
+      }
+    } else p.acquire = Math.max(0, p.acquire - dt);
+  }
+  if (p.state === "approach") {
+    p.runT += dt;
+    turnToward(p, p.target.x, p.target.y, 1.3, dt);
+    if (dist(p, p.target) < 62 && p.runT > 2) {
+      for (let i = 0; i < 3; i++)
+        game.charges.push({
+          x: p.x - Math.cos(p.a) * i * 26,
+          y: p.y - Math.sin(p.a) * i * 26,
+          t: 1.4 + i * 0.16,
+          total: 1.4 + i * 0.16,
+          depth: 0,
+          kind: "bomb",
+          power: 24 * game.weather.airFactor,
+          radius: 85,
+        });
+      p.state = "depart";
+      p.attacks++;
+      announce("BOMBS RELEASED", 2);
+    }
+  }
+  p.x += Math.cos(p.a) * p.speed * dt;
+  p.y += Math.sin(p.a) * p.speed * dt;
+  if (
+    p.life <= 0 ||
+    (p.state === "depart" &&
+      (p.x < -100 || p.x > WORLD.w + 100 || p.y < -100 || p.y > WORLD.h + 100))
+  )
+    game.plane = null;
+}
+function effect(x, y, type, life = 1) {
+  game.splashes.push({ x, y, type, life, max: life, seed: rnd(0, 6.28) });
+}
+function hitShip(sh, damage, kind, source) {
+  if (game.harbor) raiseHarborAlarm(source);
+  alertConvoy(sh, source);
+  sh.hp -= damage;
+  effect(
+    sh.x,
+    sh.y,
+    kind === "torpedo" ? "torpedo" : "hit",
+    kind === "torpedo" ? 1.1 : 0.35,
+  );
+  if (kind === "torpedo") tone(70, 0.6, "sawtooth", 0.05, 25);
+  if (!sh.escort && sh.hp > 0 && sh.hp < sh.maxhp * 0.38 && kind !== "aa")
+    sh.burn = Math.max(sh.burn, 14);
+  if (sh.hp <= 0) sink(sh);
+}
+function sink(sh) {
+  if (!sh.alive) return;
+  if (sh.id === game.mission.targetId) {
+    game.mission.targetSunk = true;
+    game.mission.targetKillTime = game.time;
+  }
+  sh.alive = false;
+  if (game.harbor && sh.moored && !game.harbor.sunk.includes(sh.id))
+    game.harbor.sunk.push(sh.id);
+  game.score += Math.round(
+    (sh.heavy ? 650 : sh.escort ? 250 : sh.tonnage / 10) *
+      approachDef(game.approach).reward,
+  );
+  if (sh.escort) game.stats.escorts++;
+  else {
+    game.stats.merchants++;
+    game.stats.tonnage += sh.tonnage;
+  }
+  game.wrecks.push({
+    x: sh.x,
+    y: sh.y,
+    a: sh.a,
+    type: sh.type,
+    heavy: sh.heavy,
+    escort: sh.escort,
+    small: sh.small,
+    life: 5,
+    max: 5,
+  });
+  effect(sh.x, sh.y, "sink", 3);
+  tone(95, 1, "triangle", 0.06, 22);
+  announce(
+    sh.escort
+      ? "ESCORT SUNK"
+      : `${sh.type.toUpperCase()} SUNK — ${sh.tonnage.toLocaleString()} tons`,
+    2.5,
+  );
+  if (objectiveComplete() && !game.objectiveAnnounced) {
+    game.objectiveAnnounced = true;
+    announce("OBJECTIVE COMPLETE — return south or hunt bonus targets", 6);
+  }
+}
+function segmentDistance(x1, y1, x2, y2, x, y) {
+  const dx = x2 - x1,
+    dy = y2 - y1,
+    t = clamp(((x - x1) * dx + (y - y1) * dy) / (dx * dx + dy * dy || 1), 0, 1);
+  return Math.hypot(x - (x1 + dx * t), y - (y1 + dy * t));
+}
+function shipHit(b, x0, y0, sh) {
+  const ca = Math.cos(sh.a),
+    sa = Math.sin(sh.a);
+  const x1 = (x0 - sh.x) * ca + (y0 - sh.y) * sa,
+    y1 = -(x0 - sh.x) * sa + (y0 - sh.y) * ca;
+  const x2 = (b.x - sh.x) * ca + (b.y - sh.y) * sa,
+    y2 = -(b.x - sh.x) * sa + (b.y - sh.y) * ca;
+  const L = sh.heavy ? 39 : sh.small ? 23 : 30,
+    W = sh.heavy ? 12 : 10; // Swept line against the hull rectangle.
+  let lo = 0,
+    hi = 1;
+  for (const [v, d, extent] of [
+    [x1, x2 - x1, L],
+    [y1, y2 - y1, W],
+  ]) {
+    if (Math.abs(d) < 1e-9) {
+      if (Math.abs(v) > extent) return false;
+    } else {
+      let a = (-extent - v) / d,
+        z = (extent - v) / d;
+      if (a > z) [a, z] = [z, a];
+      lo = Math.max(lo, a);
+      hi = Math.min(hi, z);
+      if (lo > hi) return false;
+    }
+  }
+  return true;
+}
+function updateProjectiles(dt) {
+  const s = game.sub;
+  for (const [list, torpedo] of [
+    [game.shots, true],
+    [game.shells, false],
+  ])
+    for (const b of list) {
+      if (b.life <= 0) continue;
+      const x0 = b.x,
+        y0 = b.y;
+      b.x += Math.cos(b.a) * b.speed * dt;
+      b.y += Math.sin(b.a) * b.speed * dt;
+      b.life -= dt;
+      if (harborProjectile(b, x0, y0, torpedo)) continue;
+      for (const sh of game.ships) {
+        if (sh.alive && shipHit(b, x0, y0, sh)) {
+          let damage = b.damage;
+          if (!torpedo) {
+            const g = GUNS[b.weapon];
+            damage *= g.hull;
+            if (sh.small && b.weapon > 0) damage *= 1.8;
+            if (sh.heavy && b.weapon > 0) damage *= 0.55;
+          }
+          hitShip(
+            sh,
+            damage,
+            torpedo ? "torpedo" : b.weapon === 0 ? "shell" : "aa",
+            Number.isFinite(b.ox) ? { x: b.ox, y: b.oy } : null,
+          );
+          b.life = 0;
+          game.stats.hits++;
+          if (torpedo) game.stats.torpedoHits++;
+          break;
+        }
+      }
+      if (
+        !torpedo &&
+        b.life > 0 &&
+        game.plane &&
+        segmentDistance(x0, y0, b.x, b.y, game.plane.x, game.plane.y) < 21
+      ) {
+        const p = game.plane;
+        p.hp -= b.damage;
+        b.life = 0;
+        game.stats.hits++;
+        effect(p.x, p.y, "hit", 0.4);
+        if (p.hp <= 0) {
+          game.score += 180;
+          game.stats.aircraft++;
+          effect(p.x, p.y, "torpedo", 1.2);
+          announce("AIRCRAFT DOWN", 2);
+          game.plane = null;
+        }
+      }
+    }
+  for (const b of game.enemyShells) {
+    const x0 = b.x,
+      y0 = b.y;
+    b.x += Math.cos(b.a) * b.speed * dt;
+    b.y += Math.sin(b.a) * b.speed * dt;
+    b.life -= dt;
+    if (
+      b.life > 0 &&
+      s.depth < 3 &&
+      segmentDistance(x0, y0, b.x, b.y, s.x, s.y) < 14
+    ) {
+      s.hull -= b.damage;
+      b.life = 0;
+      effect(s.x, s.y, "hit", 0.5);
+      tone(90, 0.1, "sawtooth", 0.04, 35);
+    }
+  }
+  for (const c of game.charges) {
+    c.t -= dt;
+    if (c.t <= 0 && !c.exploded) {
+      c.exploded = true;
+      effect(c.x, c.y, c.kind === "bomb" ? "bomb" : "charge", 1.2);
+      const d = dist(c, s);
+      let depthFactor =
+        c.kind === "bomb"
+          ? clamp(1 - s.depth / 32, 0, 1)
+          : clamp(1 - Math.abs(s.depth - c.depth) / 32, 0, 1);
+      if (d < c.radius && depthFactor > 0) {
+        const damage =
+          c.power *
+          Math.pow(1 - d / c.radius, 1.7) *
+          depthFactor *
+          (config.difficulty === "easy" ? 0.8 : 1);
+        s.hull -= damage;
+        if (damage > 2) tone(70, 0.2, "sawtooth", 0.04, 25);
+      }
+    }
+  }
+  game.shots = game.shots.filter((b) => b.life > 0);
+  game.shells = game.shells.filter((b) => b.life > 0);
+  game.enemyShells = game.enemyShells.filter((b) => b.life > 0);
+  game.charges = game.charges.filter((c) => !c.exploded);
+}
+function finishPatrol(outcome) {
+  if (game.over) return;
+  game.over = true;
+  game.phase = "result";
+  game.outcome = outcome;
+  game.sub.hull = Math.max(0, game.sub.hull);
+  if (outcome !== "lost") {
+    game.score +=
+      Math.round(game.sub.hull * 4) + (outcome === "success" ? 1000 : 0);
+    game.campaign.totalScore += game.score;
+    game.campaign.totalTonnage += game.stats.tonnage;
+  }
+  awardMission();
+  showResults();
+  checkpoint();
+}
+function showResults() {
+  document.getElementById("port").style.display = "none";
+  splash.style.display = "none";
+  death.style.display = "flex";
+  const won = game.outcome === "success",
+    returned = game.outcome === "partial",
+    ended = game.campaign.ended;
+  document.getElementById("resultTitle").textContent = ended
+    ? "CAMPAIGN COMPLETE"
+    : won
+      ? "PATROL COMPLETE"
+      : returned
+        ? "EARLY RETURN"
+        : "SUBMARINE LOST";
+  document.getElementById("resultSubtitle").textContent = ended
+    ? `All five assignments complete. ${game.mission.bonusEarned ? "Heavy Opposition commendation earned. " : ""}Your crew is home. Start a new campaign to try another upgrade path.`
+    : won
+      ? `${missionDef().name} complete. Earned ${game.mission.pointsEarned} upgrade point${game.mission.pointsEarned === 1 ? "" : "s"}. Return to port to prepare your next patrol.`
+      : returned
+        ? "Primary objective incomplete. Return to port, refit, and retry this assignment. No upgrade points awarded."
+        : "Your campaign has ended. Start a new campaign or load an earlier manual save.";
+  const st = game.stats;
+  document.getElementById("deathScore").innerHTML = [
+    ["Patrol score", game.score.toLocaleString()],
+    ["Primary objective", won ? "COMPLETE" : "INCOMPLETE"],
+    ["Tonnage", st.tonnage.toLocaleString()],
+    ["Hull remaining", `${Math.round(game.sub.hull)}%`],
+    ["Upgrade points earned", String(game.mission.pointsEarned)],
+    [
+      "Secondary objective",
+      missionDef().bonusLabel
+        ? game.mission.bonusEarned
+          ? "ACHIEVED"
+          : "NOT ACHIEVED"
+        : "—",
+    ],
+    [
+      "All-weapon accuracy",
+      `${st.shots ? Math.round((st.hits / st.shots) * 100) : 0}%`,
+    ],
+    ["Campaign score", game.campaign.totalScore.toLocaleString()],
+  ]
+    .map(
+      ([k, v]) =>
+        `<div><span class="label">${k}</span><strong>${v}</strong></div>`,
+    )
+    .join("");
+  const b = document.getElementById("nextPatrolBtn");
+  b.style.display = game.outcome === "lost" || ended ? "none" : "";
+  b.textContent = won ? "Return to Port" : "Refit & Retry";
+  clearInput();
+}
+function pressedPad(i) {
+  return !!pad?.buttons[i]?.pressed;
+}
+function edgePad(i) {
+  return pressedPad(i) && !padPrevious[i];
+}
+function pollPad() {
+  try {
+    pad =
+      [...(navigator.getGamepads?.() || [])].find((p) => p && p.connected) ||
+      null;
+  } catch {
+    pad = null;
+  }
+}
+function rememberInput() {
+  for (let i = 0; i < 18; i++) padPrevious[i] = pressedPad(i);
+  for (const k of Object.keys(pressed)) delete pressed[k];
+}
+function axis(i) {
+  const n = pad?.axes[i] || 0;
+  return Math.abs(n) > 0.16 ? n : 0;
+}
+function handleControls() {
+  const s = game.sub;
+  if (pressed.KeyG || edgePad(11)) selectTarget();
+  if (pressed.KeyV || edgePad(15)) cycleSpread();
+  if (pressed.KeyN || edgePad(14)) toggleSilent();
+  if (pressed.KeyB || edgePad(10)) deployDecoy();
+  if (pressed.KeyJ || edgePad(8)) cycleTime();
+  if (pressed.KeyH || edgePad(12)) emergencyRepair();
+  if (pressed.KeyQ || edgePad(1)) cycleDepth();
+  if (pressed.KeyZ) setDepth(0);
+  if (pressed.KeyX) setDepth(12);
+  if (pressed.KeyC) setDepth(60);
+  if (pressed.KeyE || edgePad(0)) activeSonar();
+  if (pressed.KeyR || edgePad(2)) beginReload();
+  if (pressed.KeyT || edgePad(13)) reloadTorpedoes();
+  if (pressed.Tab || edgePad(5)) selectGun(s.selectedGun + 1);
+  if (edgePad(4)) selectGun(s.selectedGun - 1);
+  for (let i = 0; i < 3; i++) if (pressed["Digit" + (i + 1)]) selectGun(i);
+  if (pressed.Space || edgePad(6)) fireTorpedo();
+  if (keys.KeyF || pressedPad(7)) fireGun();
+  if (pressed.KeyK || edgePad(3)) saveGame(true);
+}
+function update(dt) {
+  pollPad();
+  if (updateControllerMenus(dt)) {
+    rememberInput();
+    return;
+  }
+  if (game && (pressed.KeyO || (game.logOpen && pressed.Escape))) {
+    toggleLog();
+    rememberInput();
+    return;
+  }
+  const paused = splash.style.display !== "none";
+  if (pressed.Escape || edgePad(9)) {
+    if (game) {
+      if (paused) closeSplash();
+      else openSplash();
+    }
+    rememberInput();
+    return;
+  }
+  if (paused || !game || game.over || game.phase === "port" || game.logOpen) {
+    rememberInput();
+    return;
+  }
+  if (pressed.KeyL) {
+    loadGame(true);
+    rememberInput();
+    return;
+  }
+  const s = game.sub,
+    hullBefore = s.hull;
+  game.time += dt;
+  game.encounterAge += dt;
+  game.soundCD = Math.max(0, game.soundCD - dt);
+  game.messageT = Math.max(0, game.messageT - dt);
+  if (game.messageT === 0) game.message = "";
+  for (const k of [
+    "torpCD",
+    "sonarCD",
+    "sonarPulse",
+    "pingAlert",
+    "launchAlert",
+    "gunAlert",
+  ])
+    s[k] = Math.max(0, s[k] - dt);
+  for (let i = 0; i < 3; i++) {
+    const m = s.mounts[i],
+      g = GUNS[i];
+    m.cd = Math.max(0, m.cd - dt);
+    if (m.reload > 0 && !s.silent) {
+      m.reload = Math.max(0, m.reload - dt);
+      if (m.reload === 0) {
+        const n = Math.min(g.cap - s[g.ammo], s[g.reserve]);
+        s[g.ammo] += n;
+        s[g.reserve] -= n;
+        tone(500, 0.06, "sine", 0.012, 800);
+      }
+    }
+  }
+  if (s.torpReloading && !s.silent) {
+    s.torpReloadT -= dt;
+    if (s.torpReloadT <= 0) {
+      let n = Math.min(6 - s.fwdTubes, s.torpReserve);
+      s.fwdTubes += n;
+      s.torpReserve -= n;
+      n = Math.min(4 - s.aftTubes, s.torpReserve);
+      s.aftTubes += n;
+      s.torpReserve -= n;
+      s.torpReloading = false;
+      s.torpReloadT = 0;
+      announce("TORPEDO TUBES READY", 2);
+    }
+  }
+  handleControls();
+  if (s.repairT > 0 && Math.abs(s.speed) <= 8) {
+    s.repairT = Math.max(0, s.repairT - dt);
+    if (s.repairT === 0) {
+      s.repairCharges = Math.max(0, s.repairCharges - 1);
+      s.hull = Math.min(
+        100,
+        s.hull +
+          (upgradeLevel("repair") >= 2 ? 25 : 15) +
+          (crewHas("chief") ? 5 : 0),
+      );
+      announce("EMERGENCY REPAIRS COMPLETE", 3);
+    }
+  }
+  const accel = clamp(
+      (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0) - axis(1),
+      -1,
+      1,
+    ),
+    turn = clamp((keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0) + axis(0), -1, 1),
+    train = clamp(
+      (keys.ArrowRight ? 1 : 0) - (keys.ArrowLeft ? 1 : 0) + axis(2),
+      -1,
+      1,
+    );
+  const maxSpeed = s.silent ? 12 : s.depth < 3 ? 68 : s.depth < 18 ? 36 : 29;
+  s.speed = clamp(s.speed + accel * 25 * dt, -maxSpeed * 0.35, maxSpeed);
+  if (!accel) s.speed *= Math.pow(0.992, dt * 60);
+  s.a = norm(
+    s.a +
+      turn * (0.72 - Math.abs(s.speed) / 180) * dt * (s.speed >= 0 ? 1 : -1),
+  );
+  s.aimAngle = norm(s.aimAngle + train * 1.8 * dt);
+  s.depth += clamp(s.targetDepth - s.depth, -8 * dt, 9 * dt);
+  const previousSub = { x: s.x, y: s.y };
+  s.x = clamp(s.x + Math.cos(s.a) * s.speed * dt, 30, WORLD.w - 30);
+  s.y = clamp(s.y + Math.sin(s.a) * s.speed * dt, 30, WORLD.h - 30);
+  harborCollision(s, previousSub, 22);
+  if (s.depth >= 3) {
+    s.battery = Math.max(
+      0,
+      s.battery -
+        (dt * (0.28 + 0.2 * Math.pow(Math.abs(s.speed) / 36, 2))) /
+          ((1 + 0.15 * upgradeLevel("battery")) *
+            (crewHas("engineer") ? 1.1 : 1)),
+    );
+    if (s.battery < 20 && !s.lowBatteryWarned) {
+      s.lowBatteryWarned = true;
+      announce("BATTERY BELOW 20% — plan a surface recharge", 4);
+    }
+    if (s.battery === 0 && !s.exhausted) {
+      s.exhausted = true;
+      s.targetDepth = 0;
+      announce("BATTERY DEPLETED — emergency surfacing", 5);
+    }
+  } else {
+    s.battery = Math.min(100, s.battery + dt * 1.6);
+    if (s.battery >= 15) s.exhausted = false;
+    if (s.battery > 25) s.lowBatteryWarned = false;
+  }
+  for (const sh of game.ships) {
+    if (!sh.alive) continue;
+    const previousShip = { x: sh.x, y: sh.y };
+    if (sh.escort) {
+      harborPatrol(sh);
+      updateEscort(sh, dt);
+    } else {
+      if (!sh.moored) merchantCourse(sh, dt);
+      sh.speed =
+        sh.convoySpeed *
+        (sh.hp < sh.maxhp * 0.4 ? 0.48 : sh.hp < sh.maxhp * 0.7 ? 0.75 : 1);
+      sh.x += Math.cos(sh.a) * sh.speed * dt;
+      sh.y += Math.sin(sh.a) * sh.speed * dt;
+    }
+    harborCollision(sh, previousShip, 32);
+    if (sh.burn > 0) {
+      sh.burn -= dt;
+      sh.hp -= dt * 0.9;
+      if (sh.hp <= 0) {
+        sink(sh);
+        continue;
+      }
+    }
+    if (sh.hp < sh.maxhp * 0.7) {
+      sh.smokeT -= dt;
+      if (sh.smokeT <= 0) {
+        effect(sh.x, sh.y, "smoke", 1.8);
+        sh.smokeT = 0.35;
+      }
+    }
+    if (
+      sh.x < -240 ||
+      sh.x > WORLD.w + 240 ||
+      sh.y < -240 ||
+      sh.y > WORLD.h + 240
+    ) {
+      sh.alive = false;
+      if (sh.id === game.mission.targetId) game.mission.targetEscaped = true;
+    }
+  }
+  game.planeTimer -= dt;
+  if (!game.harbor && config.aircraft && !game.plane && game.planeTimer <= 0)
+    spawnPlane();
+  updatePlane(dt);
+  updateMission(dt);
+  updateProjectiles(dt);
+  updateMission(0);
+  updateTactics(dt, hullBefore);
+  updateHarbor(dt);
+  s.detected = game.ships.reduce(
+    (v, sh) => Math.max(v, sh.alive && sh.escort ? sh.contact : 0),
+    0,
+  );
+  const airContact =
+    game.plane && ["approach", "depart"].includes(game.plane.state);
+  const hunted = game.ships.some(
+    (sh) => sh.alive && sh.escort && sh.state !== "patrol",
+  );
+  const contact = hunted || airContact;
+  game.clearContact = contact ? 0 : game.clearContact + dt;
+  const inExit = dist(s, EXIT) < EXIT.r;
+  game.extraction = inExit && !contact ? game.extraction + dt : 0;
+  if (s.hull <= 0) {
+    finishPatrol("lost");
+    rememberInput();
+    return;
+  }
+  if (game.extraction >= 15) {
+    finishPatrol(objectiveComplete() ? "success" : "partial");
+    rememberInput();
+    return;
+  }
+  const merchants = game.ships.filter((sh) => sh.alive && !sh.escort).length;
+  if (
+    !game.harbor &&
+    merchants === 0 &&
+    game.nextEncounterIn === null &&
+    missionDef().kind !== "rescue" &&
+    !game.mission.failed
+  )
+    game.nextEncounterIn = objectiveComplete() ? 32 : 18;
+  if (game.nextEncounterIn !== null) {
+    game.nextEncounterIn -= dt;
+    if (game.nextEncounterIn <= 0) spawnConvoy();
+  }
+  // Prune completed contacts and visuals; no invisible dead ships accumulate.
+  game.ships = game.ships.filter((sh) => sh.alive);
+  game.signals.forEach((x) => (x.ttl -= dt));
+  game.signals = game.signals.filter((x) => x.ttl > 0);
+  s.sonarMarks.forEach((x) => (x.ttl -= dt));
+  s.sonarMarks = s.sonarMarks.filter((x) => x.ttl > 0);
+  game.splashes.forEach((x) => (x.life -= dt));
+  game.splashes = game.splashes.filter((x) => x.life > 0);
+  game.wrecks.forEach((x) => (x.life -= dt));
+  game.wrecks = game.wrecks.filter((x) => x.life > 0);
+  if (config.autosave && game.time - lastAutoSave >= 10) checkpoint();
+  saveFlash = Math.max(0, saveFlash - dt);
+  if (saveFlash === 0)
+    saveStatus.textContent = config.autosave
+      ? "Autosave every 10 seconds"
+      : "Autosave off";
+  rememberInput();
+}
+function checkpoint() {
+  if (config.autosave) return saveGame(false);
+  return false;
+}
+function saveGame(manual = true) {
+  if (!game?.active) return;
+  try {
+    const payload = JSON.stringify({ version: 14, nextShipId, config, game });
+    if (manual) localStorage.setItem(SAVE_KEY + "_manual", payload);
+    localStorage.setItem(SAVE_KEY, payload);
+    lastAutoSave = game.time;
+    if (manual) {
+      saveStatus.textContent = "Manual save stored";
+      saveFlash = 3;
+    }
+    return true;
+  } catch {
+    saveStatus.textContent = "Save unavailable — browser storage blocked";
+    saveFlash = 5;
+    return false;
+  }
+}
+function migrateSave(data) {
+  if (
+    !data ||
+    !data.game ||
+    !data.game.sub ||
+    !Array.isArray(data.game.ships) ||
+    data.version > 14
+  )
+    throw Error("This save is not supported.");
+  const g = data.game,
+    old = g.sub;
+  for (const key of ["x", "y", "a", "hull"])
+    if (!Number.isFinite(old[key]))
+      throw Error("Save contains invalid submarine data.");
+  const legacy = (data.version || 0) < 11;
+  const base = makeSub();
+  g.sub = { ...base, ...old };
+  const s = g.sub;
+  s.hull = clamp(s.hull, 0, 100);
+  s.x = clamp(s.x, 30, WORLD.w - 30);
+  s.y = clamp(s.y, 30, WORLD.h - 30);
+  s.aimAngle = old.aimAngle ?? old.aimAngles?.[old.selectedWeapon || 0] ?? 0;
+  s.selectedGun = clamp(
+    old.selectedGun ?? Math.max(0, (old.selectedWeapon || 0) - 1),
+    0,
+    2,
+  );
+  s.mounts =
+    Array.isArray(old.mounts) && old.mounts.length === 3
+      ? old.mounts
+      : GUNS.map(() => ({ cd: 0, reload: 0 }));
+  if (legacy && old.reloading && old.reloadWeapon >= 0 && old.reloadWeapon < 3)
+    s.mounts[old.reloadWeapon].reload = Math.max(0, old.reloadT || 0);
+  s.targetDepth = DEPTHS.includes(s.targetDepth)
+    ? s.targetDepth
+    : s.targetDepth > 18
+      ? 60
+      : s.targetDepth > 0
+        ? 12
+        : 0;
+  for (const key of [
+    "speed",
+    "depth",
+    "battery",
+    "torpCD",
+    "torpReloadT",
+    "sonarCD",
+    "aimAngle",
+    "fwdTubes",
+    "aftTubes",
+    "torpReserve",
+    "deck",
+    "deckReserve",
+    "bofors",
+    "boforsReserve",
+    "oerlikon",
+    "oerlikonReserve",
+  ])
+    if (!Number.isFinite(s[key]))
+      throw Error("Save contains invalid resource data.");
+  const defaults = {
+    version: 14,
+    active: true,
+    over: false,
+    outcome: null,
+    time: 0,
+    score: 0,
+    campaign: { patrol: 1, totalScore: 0, totalTonnage: 0 },
+    shots: [],
+    shells: [],
+    enemyShells: [],
+    charges: [],
+    splashes: [],
+    wrecks: [],
+    signals: [],
+    plane: null,
+    planeTimer: 30,
+    encounter: 1,
+    encounterName: "Resumed convoy",
+    encounterAge: 0,
+    nextEncounterIn: null,
+    extraction: 0,
+    clearContact: 0,
+    objectiveAnnounced: false,
+    stats: {
+      merchants: 0,
+      escorts: 0,
+      aircraft: 0,
+      tonnage: 0,
+      shots: 0,
+      hits: 0,
+      torpedoesFired: 0,
+      torpedoHits: 0,
+    },
+    message: "",
+    messageT: 0,
+    soundCD: 0,
+  };
+  const result = { ...defaults, ...g, version: 14, active: true };
+  result.stats = { ...defaults.stats, ...g.stats };
+  result.campaign = { ...defaults.campaign, ...g.campaign };
+  for (const key of Object.keys(defaults.stats))
+    if (!Number.isFinite(result.stats[key]))
+      throw Error("Invalid patrol statistics.");
+  for (const key of Object.keys(defaults.campaign))
+    if (!Number.isFinite(result.campaign[key]))
+      throw Error("Invalid campaign data.");
+  for (const key of [
+    "time",
+    "score",
+    "planeTimer",
+    "encounter",
+    "encounterAge",
+    "extraction",
+  ])
+    if (!Number.isFinite(result[key])) throw Error("Invalid patrol state.");
+  for (const k of [
+    "shots",
+    "shells",
+    "enemyShells",
+    "charges",
+    "splashes",
+    "wrecks",
+    "signals",
+  ])
+    if (!Array.isArray(result[k])) throw Error("Invalid saved objects.");
+  result.ships = result.ships
+    .filter((sh) => sh.alive)
+    .map((sh) => {
+      if (
+        !Number.isFinite(sh.x) ||
+        !Number.isFinite(sh.y) ||
+        !Number.isFinite(sh.hp)
+      )
+        throw Error("Invalid ship data.");
+      const type =
+        sh.type || (sh.heavy ? "heavy" : sh.escort ? "escort" : "merchant");
+      return {
+        ...makeShip(sh.x, sh.y, sh.a, type, sh.convoySpeed || 20),
+        ...sh,
+        type,
+        routeA: sh.routeA ?? sh.a,
+      };
+    });
+  if (legacy) {
+    result.plane = null;
+    result.charges = result.charges.map((c) => ({
+      ...c,
+      kind: c.kind || "depth",
+      depth: c.depth ?? 45,
+      power: c.power ?? 22,
+      radius: c.radius ?? 82,
+      total: c.total ?? c.t,
+    }));
+    result.enemyShells = result.enemyShells.map((b) => ({
+      ...b,
+      damage: b.damage ?? 10,
+    }));
+    result.splashes = [];
+    result.wrecks = [];
+    s.sonarMarks = [];
+    result.message =
+      "Older patrol restored — new objective starts at 0 / 3 merchants";
+    result.messageT = 6;
+  }
+  result.campaign = normalizeCampaign(result.campaign);
+  if ((data.version || 0) < 12) {
+    result.campaign.patrol = 1;
+    result.mission = freshMission(1);
+    result.phase = result.over ? "result" : "patrol";
+    result.message =
+      "Older save restored as First Contact — sink two merchants and return";
+    result.messageT = 7;
+    if (result.over) {
+      result.mission.awarded = true;
+      if (result.outcome === "success") {
+        result.campaign.completed = [1];
+        result.campaign.points = 1;
+        result.mission.pointsEarned = 1;
+      }
+    }
+  } else {
+    if (
+      !result.mission ||
+      !Number.isInteger(result.mission.id) ||
+      result.mission.id < 1 ||
+      result.mission.id > 6
+    )
+      throw Error("Invalid campaign mission.");
+    result.mission = { ...freshMission(result.mission.id), ...result.mission };
+    if (!["port", "patrol", "result"].includes(result.phase))
+      throw Error("Invalid campaign phase.");
+    if (
+      result.phase === "port" &&
+      (!Number.isInteger(result.portMission) ||
+        result.portMission < 1 ||
+        result.portMission > 5)
+    )
+      throw Error("Invalid port assignment.");
+  }
+  if (s.hull <= 0) {
+    result.over = true;
+    result.outcome = "lost";
+    result.phase = "result";
+  } else if (result.over && !result.outcome) result.outcome = "partial";
+  normalizeTactics(result);
+  normalizeHarbor(result);
+  return result;
+}
+function loadGame(show = true, manual = false) {
+  try {
+    const raw =
+      localStorage.getItem(manual ? SAVE_KEY + "_manual" : SAVE_KEY) ||
+      localStorage.getItem(manual ? V13_KEY + "_manual" : V13_KEY) ||
+      localStorage.getItem(manual ? V12_KEY + "_manual" : V12_KEY) ||
+      localStorage.getItem(manual ? V11_KEY + "_manual" : V11_KEY) ||
+      (!manual ? localStorage.getItem(LEGACY_KEY) : null);
+    if (!raw)
+      throw Error(manual ? "No manual save found." : "No saved patrol found.");
+    const { data, restored: loaded } = parsePortableSave(raw);
+    game = loaded;
+    nextShipId =
+      Math.max(data.nextShipId || 1, ...game.ships.map((s) => s.id || 0)) + 1;
+    if (data.config) {
+      config = { ...DEFAULT_CONFIG, ...data.config };
+      if (!["easy", "normal", "hard"].includes(config.difficulty))
+        config.difficulty = "normal";
+      syncConfigUI();
+    }
+    lastAutoSave = game.time;
+    document.getElementById("error").style.display = "none";
+    if (game.phase === "port") openPort();
+    else if (game.over) showResults();
+    else closeSplash();
+    if (show) {
+      saveStatus.textContent = manual ? "Manual save loaded" : "Patrol loaded";
+      saveFlash = 3;
+    }
+    renderHUD();
+    return true;
+  } catch (e) {
+    const text = e.message || "Unable to load save.";
+    saveStatus.textContent = text;
+    saveFlash = 5;
+    const el = document.getElementById("error");
+    el.textContent = text;
+    el.style.display = "block";
+    return false;
+  }
+}
+function drawShip(sh, alpha = 1, sinking = 0) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(sh.x, sh.y);
+  ctx.rotate(sh.a + sinking * 0.25);
+  ctx.scale(1, 1 - sinking * 0.55);
+  const L = sh.heavy ? 40 : sh.small ? 24 : 32,
+    W = sh.heavy ? 12 : 10;
+  ctx.fillStyle = sh.heavy
+    ? "#80949e"
+    : sh.escort
+      ? "#b9cbd1"
+      : sh.type === "tanker"
+        ? "#ab926d"
+        : sh.type === "transport"
+          ? "#95b7bd"
+          : "#b2aa90";
+  ctx.strokeStyle = "#041720";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(L, 0);
+  ctx.lineTo(L * 0.65, -W);
+  ctx.lineTo(-L * 0.85, -W);
+  ctx.lineTo(-L - 3, 0);
+  ctx.lineTo(-L * 0.85, W);
+  ctx.lineTo(L * 0.65, W);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = "#4b5d63";
+  ctx.fillRect(-5, -7, 14, 14);
+  if (sh.escort) {
+    ctx.fillRect(16, -3, 11, 6);
+    ctx.fillRect(-24, -3, 9, 6);
+  }
+  if (sh.type === "tanker") {
+    ctx.fillStyle = "#785e42";
+    for (let i = -19; i <= 19; i += 12) {
+      ctx.beginPath();
+      ctx.arc(i, 0, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  if (sh.burn > 0) {
+    ctx.fillStyle = "#ff994d";
+    ctx.beginPath();
+    ctx.arc(-12, -2, 4 + Math.sin(game.time * 19) * 2, 0, 7);
+    ctx.fill();
+  }
+  ctx.restore();
+  if (!sinking && alpha > 0.8 && sh.hp < sh.maxhp) {
+    ctx.fillStyle = "#311d22";
+    ctx.fillRect(sh.x - 23, sh.y - 24, 46, 4);
+    ctx.fillStyle = "#d3ae68";
+    ctx.fillRect(sh.x - 23, sh.y - 24, 46 * Math.max(0, sh.hp / sh.maxhp), 4);
+  }
+}
+function circle(x, y, r, color, width = 1) {
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.stroke();
+}
+function label(text, x, y, color = "#bad5d5", size = 13) {
+  ctx.font = `${size}px system-ui,Arial`;
+  ctx.fillStyle = color;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, x, y);
+}
+function drawSonar() {
+  const s = game.sub,
+    rr = 160;
+  ctx.save();
+  circle(s.x, s.y, rr, "#81cdbc45");
+  circle(s.x, s.y, rr * 0.65, "#81cdbc22");
+  ctx.setLineDash([3, 7]);
+  circle(s.x, s.y, rr * 0.3, "#81cdbc22");
+  ctx.setLineDash([]);
+  const range = Math.abs(s.speed) > 20 ? 430 : 690;
+  for (const sh of game.ships) {
+    if (!sh.alive || dist(s, sh) > range) continue;
+    const angle = Math.atan2(sh.y - s.y, sh.x - s.x),
+      x = s.x + Math.cos(angle) * rr,
+      y = s.y + Math.sin(angle) * rr;
+    ctx.strokeStyle = sh.escort ? "#ebc77a88" : "#a0e3cd80";
+    ctx.beginPath();
+    ctx.moveTo(
+      s.x + Math.cos(angle) * rr * 0.7,
+      s.y + Math.sin(angle) * rr * 0.7,
+    );
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    label(sh.escort ? "▲" : "●", x, y, sh.escort ? "#ebc77a" : "#a0e3cd", 16);
+  }
+  label("N", s.x, s.y - rr - 15);
+  label("S", s.x, s.y + rr + 15);
+  label("W", s.x - rr - 15, s.y);
+  label("E", s.x + rr + 15, s.y);
+  if (s.sonarPulse > 0) {
+    const radius = 760 * (1 - s.sonarPulse);
+    ctx.beginPath();
+    ctx.moveTo(s.x, s.y);
+    ctx.arc(s.x, s.y, radius, s.a - Math.PI / 4, s.a + Math.PI / 4);
+    ctx.closePath();
+    ctx.fillStyle = "#bcffe509";
+    ctx.fill();
+    ctx.strokeStyle = "#bdffe766";
+    ctx.stroke();
+  }
+  for (const mark of s.sonarMarks) {
+    ctx.globalAlpha = Math.min(1, mark.ttl / 2);
+    circle(mark.x, mark.y, 22, "#dbfff0", 2);
+    label(`${mark.range} u · sonar fix`, mark.x, mark.y - 33, "#dbfff0", 12);
+  }
+  ctx.restore();
+}
+function drawSub() {
+  const s = game.sub;
+  ctx.save();
+  ctx.translate(s.x, s.y);
+  ctx.rotate(s.a);
+  ctx.globalAlpha = s.depth > 18 ? 0.65 : 1;
+  ctx.fillStyle = s.depth < 3 ? "#7d999a" : "#73959d";
+  ctx.strokeStyle = "#071b22";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(36, 0);
+  ctx.quadraticCurveTo(25, -9, -12, -8);
+  ctx.lineTo(-36, -3);
+  ctx.lineTo(-40, 0);
+  ctx.lineTo(-36, 3);
+  ctx.lineTo(-12, 8);
+  ctx.quadraticCurveTo(25, 9, 36, 0);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = "#354e58";
+  ctx.fillRect(-5, -6, 15, 12);
+  if (s.depth < 3) {
+    for (const [x, len] of [
+      [12, 22],
+      [-10, 15],
+      [-24, 12],
+    ]) {
+      ctx.save();
+      ctx.translate(x, 0);
+      ctx.rotate(s.aimAngle);
+      ctx.fillStyle = "#d2dfd5";
+      ctx.fillRect(-3, -3, 6, 6);
+      ctx.fillRect(0, -1, len, 2);
+      ctx.restore();
+    }
+  }
+  ctx.restore();
+  const a = currentAim(),
+    g = GUNS[s.selectedGun],
+    range = s.depth < 3 ? g.speed * g.life : 220 * 7;
+  ctx.save();
+  ctx.strokeStyle = s.depth > 15 ? "#aacfc36b" : "#e9dba5c0";
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([7, 7]);
+  ctx.beginPath();
+  ctx.moveTo(s.x + Math.cos(a) * 40, s.y + Math.sin(a) * 40);
+  ctx.lineTo(
+    s.x + Math.cos(a) * Math.min(range, 260),
+    s.y + Math.sin(a) * Math.min(range, 260),
+  );
+  ctx.stroke();
+  ctx.setLineDash([]);
+  const x = s.x + Math.cos(a) * 150,
+    y = s.y + Math.sin(a) * 150;
+  circle(x, y, 6, "#ffedb9", 1.5);
+  ctx.restore();
+}
+function renderHUD() {
+  if (!game) {
+    hud.innerHTML = '<p class="muted">Awaiting patrol orders.</p>';
+    return;
+  }
+  const s = game.sub,
+    g = GUNS[s.selectedGun],
+    m = s.mounts[s.selectedGun],
+    state = s.depth < 3 ? "SURFACED" : s.depth < 18 ? "PERISCOPE" : "DEEP",
+    ordered =
+      s.targetDepth === 0
+        ? "Surface"
+        : s.targetDepth === 12
+          ? "Periscope"
+          : "Deep";
+  const contact =
+    s.detected > 0.52
+      ? "TRACKED"
+      : game.ships.some((sh) => sh.escort && sh.state !== "patrol")
+        ? "SEARCHING"
+        : "NO CONTACT";
+  const bearing =
+    (((((currentAim() + Math.PI / 2) * 180) / Math.PI) % 360) + 360) % 360;
+  const inExit = dist(s, EXIT) < EXIT.r;
+  const row = (k, v) =>
+    `<div class="row"><span class="muted">${k}</span><b>${v}</b></div>`;
+  const bar = (val, col) =>
+    `<div class="bar"><i style="width:${clamp(val, 0, 100)}%;background:${col}"></i></div>`;
+  hud.innerHTML = `<span class="label">Patrol ${game.campaign.patrol} · ${Math.floor(game.time / 60)}:${Math.floor(
+    game.time % 60,
+  )
+    .toString()
+    .padStart(
+      2,
+      "0",
+    )}</span>${row("Hull", Math.ceil(s.hull) + "%")}${bar(s.hull, s.hull < 35 ? "#ea8b75" : "#8dd8ad")}${row("Battery", Math.floor(s.battery) + "%")}${bar(s.battery, s.battery < 20 ? "#ea8b75" : "#87c8d9")}${row("Depth", s.depth.toFixed(0) + " m · " + state)}${row("Ordered", ordered)}${row("Speed", Math.abs(s.speed).toFixed(0) + " u/s" + (s.speed < 0 ? " REV" : ""))}<section><span class="label">${missionDef().name} · ${game.harbor ? "SPECIAL" : game.mission.id + "/5"}</span>${row("Objective", objectiveProgress())}${row("Tonnage", game.stats.tonnage.toLocaleString())}<div class="small ${objectiveComplete() ? "green" : game.mission.failed ? "red" : "muted"}">${game.mission.failed ? "Target escaped. Return south to retry." : objectiveComplete() ? "Orders fulfilled. Return south." : missionDef().kind === "rescue" ? "Recover survivors at the marked liferaft." : missionDef().kind === "target" ? "Find and sink the gold-marked target." : "Meet your objective, then return south."}</div>${inExit ? `<div class="yellow small">${game.extraction > 0 ? "Extracting: " + game.extraction.toFixed(1) + " / 15 s" : "Break enemy contact to extract"}</div>` : '<div class="small muted">Southern circle: extraction / early return</div>'}</section><section>${row("Selected gun", g.short)}${row("Loaded / reserve", s[g.ammo] + " / " + s[g.reserve])}<div class="small ${s.depth >= 3 ? "muted" : "yellow"}">${s.depth >= 3 ? "Surface to fire guns" : m.reload > 0 ? "Reload: " + m.reload.toFixed(1) + " s" : "Ready · F / RT"}</div>${GUNS.map((w, i) => (s.mounts[i].reload > 0 && i !== s.selectedGun ? `<div class="small muted">${w.short} reload: ${s.mounts[i].reload.toFixed(1)} s</div>` : "")).join("")}${row("Tubes FWD / AFT", s.fwdTubes + " / " + s.aftTubes)}${tubePanel()}${row("Torpedo reserve", s.torpReserve)}<div class="small yellow">${s.torpReloading ? "Tube reload: " + s.torpReloadT.toFixed(1) + " s" : s.depth > 15 ? "Rise to ≤15 m for torpedoes" : selectedTubeBank() + " bank · Space / LT"}</div>${row("Shared bearing", bearing.toFixed(0).padStart(3, "0") + "°")}</section><section>${row("Enemy contact", contact)}${row("Active sonar", s.depth < 3 ? "Submerge" : s.sonarCD > 0 ? Math.ceil(s.sonarCD) + " s" : "READY · E / A")}${row("Score", game.score.toLocaleString())}${upgradeLevel("repair") || crewHas("chief") ? row("Damage control", s.repairT > 0 ? s.repairT.toFixed(1) + "s" + (Math.abs(s.speed) > 8 ? " · PAUSED" : "") : s.repairCharges ? "READY · H / ↑" : "USED") : ""}<div class="small muted">Encounter ${game.encounter} · ${escapeHTML(game.encounterName)}</div>${game.nextEncounterIn !== null ? '<div class="small muted">New contact in ' + Math.ceil(game.nextEncounterIn) + " s</div>" : ""}</section>${tacticalHud()}${crewHud()}${harborHud()}`;
+}
+function render() {
+  ctx.fillStyle = game?.weather?.night ? "#061e30" : "#092b3b";
+  ctx.fillRect(0, 0, WORLD.w, WORLD.h);
+  ctx.strokeStyle = "#8bcccf0c";
+  ctx.lineWidth = 1;
+  for (let x = 0; x < WORLD.w; x += 100) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, WORLD.h);
+    ctx.stroke();
+  }
+  for (let y = 0; y < WORLD.h; y += 100) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(WORLD.w, y);
+    ctx.stroke();
+  }
+  if (!game) return;
+  const s = game.sub;
+  ctx.strokeStyle = "#b5dedd10";
+  for (let y = 30; y < WORLD.h; y += 65) {
+    ctx.beginPath();
+    for (let x = 0; x < WORLD.w; x += 25) {
+      const yy =
+        y +
+        Math.sin(x * 0.018 + game.time * 0.5) * (game.weather.rough ? 9 : 4);
+      x ? ctx.lineTo(x, yy) : ctx.moveTo(x, yy);
+    }
+    ctx.stroke();
+  }
+  drawHarbor();
+  ctx.fillStyle = objectiveComplete() ? "#8bdbab13" : "#ebd38d08";
+  ctx.beginPath();
+  ctx.arc(EXIT.x, EXIT.y, EXIT.r, 0, 7);
+  ctx.fill();
+  circle(
+    EXIT.x,
+    EXIT.y,
+    EXIT.r,
+    objectiveComplete() ? "#a2e8ba" : "#c9b581",
+    2,
+  );
+  label(
+    objectiveComplete() ? "EXTRACTION" : "RETURN / EARLY EXIT",
+    EXIT.x,
+    EXIT.y - 15,
+    "#d6ddac",
+    14,
+  );
+  label(
+    game.extraction > 0
+      ? `${game.extraction.toFixed(1)} / 15 s`
+      : "15 seconds · no contact",
+    EXIT.x,
+    EXIT.y + 12,
+    "#aabfae",
+    12,
+  );
+  ctx.strokeStyle = "#42616c";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(18, 18, WORLD.w - 36, WORLD.h - 36);
+  if (!game.harbor)
+    label("NORTH PACIFIC · PATROL SECTOR", WORLD.w / 2, 34, "#6e98a6", 12);
+  for (const w of game.wrecks)
+    if (s.depth < 18) drawShip(w, w.life / w.max, 1 - w.life / w.max);
+  if (s.depth < 3) {
+    for (const sh of game.ships)
+      if (sh.alive && dist(s, sh) < visualRange()) drawShip(sh);
+  } else {
+    drawSonar();
+    if (s.depth < 18)
+      for (const sh of game.ships)
+        if (sh.alive && dist(s, sh) < visualRange())
+          drawShip(sh, clamp(1 - dist(s, sh) / 800, 0.35, 1));
+  }
+  // Search markers are deliberate arcade feedback, distinct from sonar returns.
+  for (const sh of game.ships) {
+    if (!sh.alive || !sh.escort) continue;
+    if (sh.lastKnown && sh.state !== "patrol") {
+      const p = sh.lastKnown;
+      ctx.save();
+      ctx.setLineDash([4, 6]);
+      circle(p.x, p.y, 38, "#eab47b45");
+      ctx.setLineDash([]);
+      ctx.strokeStyle = "#eab47b90";
+      ctx.beginPath();
+      ctx.moveTo(p.x - 6, p.y - 6);
+      ctx.lineTo(p.x + 6, p.y + 6);
+      ctx.moveTo(p.x + 6, p.y - 6);
+      ctx.lineTo(p.x - 6, p.y + 6);
+      ctx.stroke();
+      ctx.restore();
+      if (sh.state === "search" || sh.state === "investigate")
+        label("SEARCH AREA", p.x, p.y + 49, "#d1a675", 10);
+    }
+    if (sh.attack?.stage === "approach") {
+      circle(sh.attack.x, sh.attack.y, 35, "#ecba7744");
+    }
+  }
+  for (const t of game.shots) {
+    ctx.strokeStyle = "#c5e6de88";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(t.x - Math.cos(t.a) * 24, t.y - Math.sin(t.a) * 24);
+    ctx.lineTo(t.x, t.y);
+    ctx.stroke();
+    ctx.fillStyle = "#ecfff1";
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, 3.5, 0, 7);
+    ctx.fill();
+  }
+  for (const b of [...game.shells, ...game.enemyShells]) {
+    ctx.fillStyle = b.color || "#ff9f7b";
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.size || 3, 0, 7);
+    ctx.fill();
+  }
+  for (const c of game.charges) {
+    const phase = 1 - c.t / c.total;
+    ctx.save();
+    ctx.setLineDash([5, 5]);
+    circle(c.x, c.y, c.radius, "#edb26955");
+    ctx.setLineDash([]);
+    circle(c.x, c.y, 12 + phase * 18, "#f4ca87", 2);
+    ctx.fillStyle = "#e8bc73";
+    ctx.fillRect(c.x - 4, c.y - 4, 8, 8);
+    label(
+      `${c.kind === "bomb" ? "BOMB" : c.depth + " m"} · ${Math.max(0, c.t).toFixed(1)}s`,
+      c.x,
+      c.y - 24,
+      "#ffe2ac",
+      11,
+    );
+    ctx.restore();
+  }
+  if (game.plane) {
+    const p = game.plane;
+    if (p.state === "approach") {
+      ctx.save();
+      ctx.setLineDash([9, 8]);
+      ctx.strokeStyle = "#edbf7288";
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.target.x, p.target.y);
+      ctx.stroke();
+      circle(p.target.x, p.target.y, 40, "#edbf7277");
+      ctx.restore();
+    }
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.a);
+    ctx.fillStyle = "#d7e4df";
+    ctx.strokeStyle = "#10252a";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(23, 0);
+    ctx.lineTo(4, -4);
+    ctx.lineTo(-5, -24);
+    ctx.lineTo(-10, -24);
+    ctx.lineTo(-6, -4);
+    ctx.lineTo(-23, -3);
+    ctx.lineTo(-27, 0);
+    ctx.lineTo(-23, 3);
+    ctx.lineTo(-6, 4);
+    ctx.lineTo(-10, 24);
+    ctx.lineTo(-5, 24);
+    ctx.lineTo(4, 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+  for (const e of game.splashes) {
+    const p = 1 - e.life / e.max;
+    ctx.save();
+    ctx.globalAlpha = 1 - p;
+    if (e.type === "smoke") {
+      ctx.fillStyle = "#35464ccc";
+      ctx.beginPath();
+      ctx.arc(e.x + p * 14, e.y - p * 22, 5 + p * 10, 0, 7);
+      ctx.fill();
+    } else if (e.type === "ping") {
+      circle(e.x, e.y, 25 + p * 220, "#f5c688", 1.5);
+    } else if (e.type === "muzzle") {
+      ctx.fillStyle = "#fff1b9";
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, 7 * (1 - p) + 2, 0, 7);
+      ctx.fill();
+    } else {
+      const big = ["torpedo", "sink", "bomb", "charge"].includes(e.type),
+        r = big ? 10 + p * 65 : 3 + p * 15;
+      circle(
+        e.x,
+        e.y,
+        r,
+        e.type === "hit" ? "#ffd087" : "#d7f5ee",
+        big ? 3 : 2,
+      );
+      if (p < 0.35) {
+        ctx.fillStyle = big ? "#ffc980" : "#fff1be";
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, r * 0.6, 0, 7);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+  drawMission();
+  drawTactics();
+  drawSub();
+  msg.textContent = game.messageT > 0 ? game.message : "";
+}
+addEventListener("keydown", (e) => {
+  if (
+    ["INPUT", "SELECT", "BUTTON"].includes(e.target?.tagName) &&
+    splash.style.display !== "none" &&
+    e.code !== "Escape"
+  )
+    return;
+  if (!keys[e.code]) pressed[e.code] = true;
+  keys[e.code] = true;
+  if (
+    [
+      "Space",
+      "Tab",
+      "ArrowLeft",
+      "ArrowRight",
+      "ArrowUp",
+      "ArrowDown",
+    ].includes(e.code)
+  )
+    e.preventDefault();
+});
+addEventListener("keyup", (e) => {
+  delete keys[e.code];
+});
+addEventListener("blur", () => {
+  clearInput();
+  if (game && !game.over) openSplash();
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && game && !game.over) openSplash();
+});
+document
+  .getElementById("newPatrolBtn")
+  .addEventListener("click", () => newCampaign());
+document.getElementById("resumeBtn").addEventListener("click", closeSplash);
+document
+  .getElementById("loadPatrolBtn")
+  .addEventListener("click", () => loadGame());
+document.getElementById("saveBtn").addEventListener("click", () => saveGame());
+document.getElementById("loadBtn").addEventListener("click", () => loadGame());
+document.getElementById("menuBtn").addEventListener("click", openSplash);
+document
+  .getElementById("restartBtn")
+  .addEventListener("click", () => newCampaign());
+document.getElementById("nextPatrolBtn").addEventListener("click", nextPatrol);
+document.getElementById("resultMenuBtn").addEventListener("click", openSplash);
+const manualButton = document.createElement("button");
+manualButton.id = "loadManualBtn";
+manualButton.textContent = "Load Manual Save";
+manualButton.addEventListener("click", () => loadGame(true, true));
+document.querySelector("#splash .actions").appendChild(manualButton);
+for (const id of [
+  "difficulty",
+  "cfgAircraft",
+  "cfgHeavy",
+  "cfgAutosave",
+  "cfgSonarPenalty",
+  "cfgSound",
+])
+  document.getElementById(id).addEventListener("change", readConfigFromUI);
+document.getElementById("departBtn").addEventListener("click", departPort);
+document.getElementById("portMenuBtn").addEventListener("click", openSplash);
+document.getElementById("portSaveBtn").addEventListener("click", () => {
+  const ok = saveGame(true);
+  game.portNotice = ok
+    ? "Campaign saved at port."
+    : "Could not save — browser storage is unavailable.";
+  renderPort();
+});
+initTacticalUI();
+initCrewUI();
+initInterface();
+loadConfig();
+updateMenu();
+renderHUD();
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
+  last = now;
+  let wall = dt;
+  while (wall > 1e-6) {
+    const scale = game?.timeScale || 1,
+      step = Math.min(0.025, wall * scale);
+    update(step);
+    wall -= step / scale;
+  }
+  render();
+  hudClock += dt;
+  if (hudClock >= 0.1) {
+    renderHUD();
+    hudClock = 0;
+  }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+</script>
+  </body>
+</html>

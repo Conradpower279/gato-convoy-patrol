@@ -1,0 +1,20 @@
+{
+  "name": "gato-convoy-patrol",
+  "version": "15.0.0",
+  "private": true,
+  "description": "Offline HTML Canvas submarine arcade campaign",
+  "scripts": {
+    "start": "node scripts/serve.cjs",
+    "build": "node scripts/build.cjs",
+    "test": "node tests/campaign.cjs && node tests/combat.cjs && node tests/tactics.cjs && node tests/harbor.cjs",
+    "test:browser": "node tests/browser.cjs && node tests/harbor-browser.cjs && node tests/controller-browser.cjs",
+    "format": "prettier --write index.html src scripts tests docs README.md AI_REVIEW_PROMPT.md"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1",
+    "prettier": "3.6.2"
+  }
+}

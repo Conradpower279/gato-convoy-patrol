@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Gato Class: Convoy Patrol — v15</title>
+    <link rel="stylesheet" href="src/styles.css" />
+  </head>
+  <body>
+    <div id="layout">
+      <aside>
+        <header>
+          UNITED STATES NAVY<strong>USS GATO</strong
+          ><span>SS-212 · PATROL CONTROL</span>
+        </header>
+        <div id="hud"></div>
+        <div class="controls">
+          <button id="saveBtn">Save</button
+          ><button id="loadBtn">Load save</button
+          ><button id="logBtn" class="wide">Patrol Log · O</button
+          ><button id="menuBtn" class="wide">Pause / Menu · Esc</button
+          ><span id="saveStatus">Autosave on</span>
+        </div>
+      </aside>
+      <main id="stage">
+        <canvas id="game" aria-label="Submarine patrol battlefield"></canvas>
+        <div id="msg" aria-live="polite"></div>
+        <details id="help">
+          <summary>Controls &amp; field guide</summary>
+          <div class="helpbody">
+            <p>
+              <b>Keyboard</b><br />W/S: throttle · A/D: rudder<br />←/→: shared
+              aim · 1/2/3 or Tab: gun<br />Space: torpedo · F: selected gun<br />Q:
+              cycle surface / periscope / deep<br />Z/X/C: surface / periscope /
+              deep<br />E: sonar · R: gun reload · T: tubes<br />G: track target
+              · V: torpedo spread<br />N: silent running · B: decoy<br />J: time
+              ×1/×2/×4 · O: patrol log<br />H: emergency repair (upgrade or
+              Chief required)<br />K: save · L: load · Esc: pause
+            </p>
+            <p>
+              <b>Xbox controller</b><br />Left stick: throttle / rudder<br />Right
+              stick: shared aim / vertical HUD scroll<br />LT: torpedo · RT:
+              selected gun<br />LB/RB: gun · B: cycle depth<br />A: sonar · X:
+              gun reload<br />D-pad Down: torpedo reload<br />R-stick click:
+              track · D-pad Right: spread<br />D-pad Left: silent · L-stick
+              click: decoy<br />View: time compression<br />D-pad Up: emergency
+              repair<br />Y: save · Start: pause / resume<br /><b>Menus:</b>
+              D-pad / left stick: move · A: select · B: back<br />Right stick:
+              scroll · LB/RB: page<br />X: log · Y: field guide<br />Left/right
+              or A: change selected resistance setting
+            </p>
+            <p>
+              <b>Patrol</b><br />Complete the current mission, then stay in the
+              southern exit with no enemy contact for 15 seconds. An early
+              return lets you refit and retry. Primary objectives earn 1 upgrade
+              point; patrols 2–4 offer optional bonus points. Spend points at
+              port; each upgrade has two levels.
+            </p>
+            <p>
+              <b>Survival</b><br />Deep water reduces detection. Slow down to
+              listen and break contact. Torpedoes launch at 0–15 m. Battery
+              charges surfaced; high underwater speed drains it faster. At zero
+              battery, emergency surfacing starts.
+            </p>
+            <p>
+              <b>Tactical controls</b><br />Observe targets for better lead
+              estimates. G cycles observed contacts; aim manually at the lead
+              diamond. Maneuvers and lost contact reduce confidence. V selects
+              single or three-torpedo spreads. Silent running pauses reloads.
+              Decoys may distract distant escorts; they are ineffective at close
+              range. Time compression stops near threats and objectives.
+            </p>
+            <p>
+              <b>Weapons</b><br />3-inch: ship hulls. 40 mm: aircraft and small
+              craft. 20 mm: close aircraft defense. Mounts reload independently.
+              Shared aim remains relative to your hull.
+            </p>
+            <p class="muted">
+              Arcade simulation. Distances and speeds use game units, not
+              real-world performance.
+            </p>
+          </div>
+        </details>
+      </main>
+    </div>
+    <div id="splash" class="overlay">
+      <div class="card">
+        <div class="eyebrow">UNITED STATES SUBMARINE FORCE</div>
+        <h1>USS GATO</h1>
+        <div class="documentTitle">WAR PATROL ORDERS</div>
+        <p class="muted">
+          Strike the convoy. Break contact. Bring your crew home.
+        </p>
+        <div class="brief">
+          <b>Patrol orders:</b> Complete five assignments: convoy attack, tanker
+          interdiction, rescue, transport interception, and heavy opposition.
+          Return to port between missions to upgrade your boat and crew.
+        </div>
+        <div class="actions">
+          <button id="resumeBtn" class="primary">Resume Patrol</button
+          ><button id="newPatrolBtn">New Campaign</button
+          ><button id="loadPatrolBtn">Load Saved Patrol</button>
+        </div>
+        <div class="actions">
+          <button id="exportBtn">Export Campaign JSON</button
+          ><button id="importBtn">Import Campaign JSON</button>
+        </div>
+        <input
+          id="importFile"
+          type="file"
+          accept=".json,application/json"
+          hidden
+        />
+        <p class="small muted">
+          Import replaces the current session after validation. Export first to
+          keep it. JSON saves transfer between versions and browsers.
+        </p>
+        <p id="transferStatus" class="small yellow" aria-live="polite"></p>
+        <p id="controllerStatus" class="controllerStatus" aria-live="polite">
+          Xbox controller: press a button to connect.
+        </p>
+        <div class="actions utilityActions">
+          <button id="menuLogBtn">Patrol Log · X</button
+          ><button id="menuHelpBtn">Field Guide · Y</button>
+        </div>
+        <div class="config">
+          <h3>PATROL CONDITIONS</h3>
+          <div class="configRow">
+            <label for="difficulty">Enemy difficulty</label
+            ><select id="difficulty">
+              <option value="easy">Easy</option>
+              <option value="normal" selected>Normal</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+          <div class="configRow">
+            <label
+              ><input id="cfgAircraft" type="checkbox" checked /> Aircraft
+              patrols</label
+            >
+          </div>
+          <div class="configRow">
+            <label
+              ><input id="cfgHeavy" type="checkbox" checked /> Heavy surface
+              hunters</label
+            >
+          </div>
+          <div class="configRow">
+            <label
+              ><input id="cfgAutosave" type="checkbox" checked />
+              Autosave</label
+            >
+          </div>
+          <div class="configRow">
+            <label
+              ><input id="cfgSonarPenalty" type="checkbox" checked /> Active
+              sonar alerts nearby escorts</label
+            >
+          </div>
+          <div class="configRow">
+            <label
+              ><input id="cfgSound" type="checkbox" checked /> Sound
+              effects</label
+            >
+          </div>
+        </div>
+        <p id="saveFound" class="small muted"></p>
+        <p class="small muted">
+          Loading restores the saved difficulty and patrol options. Compatible
+          older saves available to this page are migrated automatically.
+        </p>
+        <div id="error"></div>
+      </div>
+    </div>
+    <div id="death" class="overlay">
+      <div class="card">
+        <div class="eyebrow">USS GATO · SS-212</div>
+        <div class="documentTitle">WAR PATROL REPORT</div>
+        <h2 id="resultTitle">PATROL COMPLETE</h2>
+        <p id="resultSubtitle" class="muted"></p>
+        <div id="deathScore" class="results"></div>
+        <div class="actions">
+          <button id="nextPatrolBtn" class="primary">Return to Port</button
+          ><button id="restartBtn">New Campaign</button
+          ><button id="resultMenuBtn">Main Menu</button>
+        </div>
+      </div>
+    </div>
+    <div id="port" class="overlay">
+      <div class="card portCard">
+        <div class="eyebrow">SUBMARINE TENDER · REFIT &amp; ORDERS</div>
+        <h2 id="portTitle"></h2>
+        <div class="sortieChoices">
+          <button id="campaignSortieBtn">Campaign orders</button
+          ><button id="harborSortieBtn">Night Harbor Raid</button>
+        </div>
+        <div class="brief">
+          <p id="portBrief"></p>
+          <p id="portBonus" class="yellow small"></p>
+        </div>
+        <section class="crewStation" aria-label="Crew loadout">
+          <div class="crewHeading">
+            <div>
+              <div class="eyebrow">PIER 07 · PERSONNEL DETAIL</div>
+              <h3>Hot Runners</h3>
+            </div>
+            <strong id="crewCount">0 / 3 assigned</strong>
+          </div>
+          <p class="small">
+            Click a sailor on the pier to inspect their record. Assign up to
+            three. All five are available.
+          </p>
+          <div id="crewPier" class="crewPier">
+            <svg id="pierArt" viewBox="0 0 1000 360" aria-hidden="true"></svg>
+            <div id="crewSailors"></div>
+          </div>
+          <div id="crewQuote" role="status" aria-live="polite">
+            “No volunteers? That’s how you get volunteered.” — Pier watch
+          </div>
+          <div id="crewRecord" class="crewRecord"></div>
+          <div id="crewManifest"></div>
+        </section>
+        <div id="campaignTrack"></div>
+        <p id="portStatus" class="muted small" aria-live="polite"></p>
+        <div class="approachPanel" id="approachPanel">
+          <h3>Choose your interception</h3>
+          <p id="conditions" class="small muted"></p>
+          <svg
+            id="approachChart"
+            viewBox="0 0 400 250"
+            role="img"
+            aria-label="Patrol chart: eastbound contact lane in the north; chosen approach south of it"
+          >
+            <rect
+              x="1"
+              y="1"
+              width="398"
+              height="248"
+              rx="5"
+              fill="#071e2c"
+              stroke="#3b6269"
+            />
+            <path
+              d="M35 78 H370 M360 72 L370 78 L360 84"
+              stroke="#e6c77b"
+              fill="none"
+              stroke-width="2"
+            />
+            <text
+              x="200"
+              y="55"
+              text-anchor="middle"
+              fill="#e6c77b"
+              font-size="12"
+            >
+              ESTIMATED SHIPPING LANE →
+            </text>
+            <circle cx="200" cy="227" r="20" fill="none" stroke="#8dd8ad" />
+            <text
+              x="200"
+              y="230"
+              text-anchor="middle"
+              fill="#8dd8ad"
+              font-size="9"
+            >
+              EXIT
+            </text>
+            <circle
+              id="approachMarker"
+              cx="200"
+              cy="175"
+              r="7"
+              fill="#b7eeeb"
+            />
+            <text x="12" y="20" fill="#9cb9bb" font-size="11">N ↑</text>
+          </svg>
+          <p id="contactEstimate" class="small"></p>
+          <div id="approachChoices"></div>
+        </div>
+        <div class="documentTitle refitHeading">
+          SUBMARINE TENDER — REFIT AUTHORIZATION
+        </div>
+        <div id="upgradePoints"></div>
+        <p class="muted small">
+          Each level costs 1 point. Upgrades carry through the campaign; maximum
+          2 levels each.
+        </p>
+        <div id="upgradeList"></div>
+        <p id="campaignLog" class="muted small"></p>
+        <div class="actions">
+          <button id="departBtn" class="primary">Depart</button
+          ><button id="portSaveBtn">Save Campaign</button
+          ><button id="portExportBtn">Export JSON</button
+          ><button id="portMenuBtn">Main Menu</button>
+        </div>
+      </div>
+    </div>
+    <div id="logOverlay" class="overlay">
+      <div class="card">
+        <div class="eyebrow">PATROL EVENT LOG · PAUSED</div>
+        <h2>Captain’s log</h2>
+        <div id="logEntries"></div>
+        <button id="closeLogBtn" class="primary">Close Log · O / Esc</button>
+      </div>
+    </div>
+    <div id="helpOverlay" class="overlay" style="display: none">
+      <div class="card">
+        <div class="eyebrow">USS GATO · OPERATING CARD</div>
+        <h2>Controls &amp; Field Guide</h2>
+        <div id="fieldGuideText"></div>
+        <button id="closeHelpBtn">Close Field Guide · B</button>
+      </div>
+    </div>
+    <div id="controllerHint" hidden></div>
+    <script src="src/interface.js"></script>
+    <script src="src/harbor.js"></script>
+    <script src="src/tactics.js"></script>
+    <script src="src/game.js"></script>
+  </body>
+</html>
